@@ -47,7 +47,6 @@ export const calculateGains = (
   for (const item of untilTo) {
     snapshot = step(snapshot, item)
   }
-
   return snapshotValueEur(snapshot) - valueInFrom
 }
 

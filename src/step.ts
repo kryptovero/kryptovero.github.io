@@ -1,5 +1,11 @@
 import { LedgerItem, LedgerSnapshot } from "."
-import assert from "assert"
+
+const calculateToUnitPrice = (item: LedgerItem, purchaseSumEur: number) => {
+  if (item.to.unitPriceEur !== undefined) return item.to.unitPriceEur
+  if (item.from.unitPriceEur !== undefined)
+    return (item.from.unitPriceEur * item.from.amount) / item.to.amount
+  return purchaseSumEur / item.to.amount
+}
 
 export const step = (
   snapshot: LedgerSnapshot,
@@ -10,12 +16,15 @@ export const step = (
 
   // TODO: Refactor to recursion
   let remaining = item.from.amount
+  let purchaseSumEur = 0
   const newFrom: typeof currFrom = []
   for (const item of currFrom) {
     if (remaining >= item.amount) {
       remaining -= item.amount
+      purchaseSumEur += item.amount * item.unitPriceEur
     } else {
       newFrom.push({ ...item, amount: item.amount - remaining })
+      purchaseSumEur += remaining * item.unitPriceEur
       remaining = 0
     }
   }
@@ -27,11 +36,7 @@ export const step = (
     })
   }
 
-  assert((item.to.unitPriceEur ?? item.from.unitPriceEur) !== undefined)
-
-  const toUnitPriceEur =
-    item.to.unitPriceEur ??
-    (item.from.unitPriceEur! * item.from.amount) / item.to.amount
+  const toUnitPriceEur = calculateToUnitPrice(item, purchaseSumEur)
 
   return {
     ...snapshot,

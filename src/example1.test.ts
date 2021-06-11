@@ -4,7 +4,7 @@ import { calculateGains, Ledger, stateAt } from "."
 import { eq } from "./testutils"
 
 // Sourced from:
-// https://www.vero.fi/syventavat-vero-ohjeet/ohje-hakusivu/48411/virtuaalivaluuttojen-verotus3/
+// https://www.vero.fi/syventavat-vero-ohjeet/ohje-hakusivu/48411/virtuaalivaluuttojen-verotus3/#:~:text=Esimerkki%201
 
 const initialLedger: Ledger = [
   {
