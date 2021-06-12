@@ -3,8 +3,6 @@ import ReactDOM from "react-dom";
 import "./index.css";
 import App from "./App";
 import reportWebVitals from "./reportWebVitals";
-import { calculateGains } from "@fifo/ledger";
-import { Temporal } from "proposal-temporal";
 
 ReactDOM.render(
   <React.StrictMode>
@@ -17,11 +15,3 @@ ReactDOM.render(
 // to log results (for example: reportWebVitals(console.log))
 // or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
 reportWebVitals();
-
-console.log(
-  calculateGains(
-    Temporal.PlainDate.from("2020-01-01"),
-    Temporal.PlainDate.from("2020-01-01"),
-    []
-  )
-);
