@@ -1,4 +1,4 @@
-# Finalnd crypto FIFO tax calculator
+# Finland crypto FIFO tax calculator
 > Calculate taxes for the Finnish government from your crypto tradings
 
 Finnish government has [rules for taxation of different crypto
