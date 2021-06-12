@@ -1,27 +1,17 @@
 {
- "name": "fifo",
- "version": "1.0.0",
- "main": "index.js",
- "license": "MIT",
- "dependencies": {
-  "@types/node": "^15.12.2",
-  "ava": "^3.15.0",
-  "proposal-temporal": "^0.8.0",
-  "ts-node": "^10.0.0",
-  "typescript": "^4.3.2"
- },
- "scripts": {
-  "test": "ava --verbose"
- },
- "ava": {
-  "extensions": [
-   "ts"
+  "name": "fifo",
+  "version": "1.0.0",
+  "main": "index.js",
+  "author": "Jesse Luoto <jesse.luoto@gmail.com>",
+  "license": "MIT",
+  "private": true,
+  "workspaces": [
+    "ledger",
+    "frontend"
   ],
-  "require": [
-   "ts-node/register"
-  ]
- },
- "prettier": {
-  "semi": false
- }
+  "scripts": {
+    "start": "yarn workspaces run start",
+    "build": "yarn workspaces run build",
+    "test": "yarn workspaces run test"
+  }
 }
