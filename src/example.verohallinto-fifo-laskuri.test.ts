@@ -1,7 +1,6 @@
 import test from "ava"
 import { Temporal } from "proposal-temporal"
-import { calculateGains, Ledger, stateAt } from "."
-import { eq } from "./testutils"
+import { calculateGains, Ledger } from "."
 
 // Sourced from:
 // https://www.vero.fi/tietoa-verohallinnosta/yhteystiedot-ja-asiointi/asioi-verkossa/verohallinnon_laskuri/fifo-laskuri/
