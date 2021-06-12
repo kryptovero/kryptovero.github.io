@@ -1,0 +1,31 @@
+import test from "ava"
+import { Temporal } from "proposal-temporal"
+import { calculateGains, Ledger, stateAt } from "."
+import { eq } from "./testutils"
+
+// Sourced from:
+// https://www.vero.fi/syventavat-vero-ohjeet/ohje-hakusivu/48411/virtuaalivaluuttojen-verotus3/#:~:text=Esimerkki%202
+
+const initialLedger: Ledger = [
+  {
+    date: Temporal.PlainDate.from("2020-01-01"),
+    from: { amount: 1_000, symbol: "EUR", unitPriceEur: 1 },
+    to: { amount: 200, symbol: "A", unitPriceEur: 5 },
+  },
+  {
+    date: Temporal.PlainDate.from("2020-02-01"),
+    from: { amount: 100, symbol: "A", unitPriceEur: 10 },
+    to: { amount: 1_000, symbol: "EUR", unitPriceEur: 1 },
+  },
+]
+
+test("Esimerkki 2.1", (t) => {
+  t.is(
+    calculateGains(
+      Temporal.PlainDate.from("2019-12-31"),
+      Temporal.PlainDate.from("2020-02-01"),
+      initialLedger
+    ),
+    500
+  )
+})
