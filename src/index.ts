@@ -7,9 +7,17 @@ export type LedgerItem = {
   date: Temporal.PlainDate
   from: Coin
   to: Coin
+  fee?: Coin
 }
 
 export type Ledger = LedgerItem[]
+
+export type TaxInfo = {
+  fromEur: number
+  toEur: number
+  fromDate: Temporal.PlainDate
+  toDate: Temporal.PlainDate
+}
 
 type LedgerSnapshotItem = {
   amount: number
@@ -18,12 +26,26 @@ type LedgerSnapshotItem = {
 }
 export type LedgerSnapshot = { [symbol: string]: LedgerSnapshotItem[] }
 
-const snapshotValueEur = (snapshot: LedgerSnapshot) => {
-  return Object.values(snapshot).reduce(
-    (sum, items) =>
-      sum +
-      items.reduce((sum, item) => sum + item.unitPriceEur * item.amount, 0),
-    0
+const calculateTax = (taxInfo: TaxInfo) => {
+  /**
+   * "Hankintameno-olettamaa käytettäessä vähennys on 20 % luovutushinnasta,
+   * jos omaisuus on omistettu alle 10 vuotta ja 40 %, jos omaisuus on omistettu
+   * vähintään 10 vuotta"
+   */
+  const heldMoreThan10Years =
+    taxInfo.fromDate
+      .add(Temporal.Duration.from({ years: 10 }))
+      .until(taxInfo.toDate).days >= 0
+  const acquisitionCostAssumption = heldMoreThan10Years ? 0.4 : 0.2
+
+  /**
+   * realisoitunut arvonnousu .. lasketaan verovelvolliselle edullisemmalla tavalla:
+   * .. luovutushinnasta voidaan vähentää joko todellinen hankintahinta kuluineen tai
+   * .. hankintameno-olettama ilman mitään muita kuluja
+   */
+  return Math.min(
+    taxInfo.toEur * (1 - acquisitionCostAssumption),
+    taxInfo.toEur - taxInfo.fromEur
   )
 }
 
@@ -40,14 +62,20 @@ export const calculateGains = (
   )
 
   for (const item of untilFrom) {
-    snapshot = step(snapshot, item)
+    snapshot = step(snapshot, item).snapshot
   }
 
-  const valueInFrom = snapshotValueEur(snapshot)
+  let gains = 0
   for (const item of untilTo) {
-    snapshot = step(snapshot, item)
+    const result = step(snapshot, item)
+    snapshot = result.snapshot
+    gains += result.taxGains.reduce(
+      (sum, taxInfo) => sum + calculateTax(taxInfo),
+      0
+    )
   }
-  return snapshotValueEur(snapshot) - valueInFrom
+
+  return gains
 }
 
 export const stateAt = (
@@ -59,7 +87,7 @@ export const stateAt = (
   const untilDate = sorted.filter((item) => item.date.until(date).days >= 0)
 
   for (const item of untilDate) {
-    snapshot = step(snapshot, item)
+    snapshot = step(snapshot, item).snapshot
   }
 
   return snapshot

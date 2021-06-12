@@ -13,7 +13,7 @@ test("step should add item to empty snapshot", (t) => {
         from: { amount: 10, symbol: "EUR", unitPriceEur: 1 },
         to: { amount: 10, symbol: "A", unitPriceEur: 1 },
       }
-    ),
+    ).snapshot,
     {
       EUR: [
         {
@@ -51,7 +51,7 @@ test("Should reduce amount when selling", (t) => {
         from: { amount: 5, symbol: "A", unitPriceEur: 1 },
         to: { amount: 5, symbol: "EUR", unitPriceEur: 1 },
       }
-    ),
+    ).snapshot,
     {
       A: [
         {
