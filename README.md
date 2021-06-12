@@ -2,7 +2,7 @@
 > Calculate taxes for the Finnish government from your crypto tradings
 
 Finnish government has [rules for taxation of different crypto
-trades](https://www.vero.fi/syventavat-vero-ohjeet/ohje-hakusivu/48411/virtuaalivaluuttojen-verotus3/).
+trades](https://www.vero.fi/en/detailed-guidance/guidance/48411/taxation-of-virtual-currencies3/).
 The rules are quite complex compared to how easy it is to trade coins, so this
 project aims to build an easy-to-use and free tool so you know to pay correct
 amount of taxes.

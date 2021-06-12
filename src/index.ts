@@ -28,23 +28,24 @@ export type LedgerSnapshot = { [symbol: string]: LedgerSnapshotItem[] }
 
 const calculateTax = (taxInfo: TaxInfo) => {
   /**
-   * "Hankintameno-olettamaa käytettäessä vähennys on 20 % luovutushinnasta,
-   * jos omaisuus on omistettu alle 10 vuotta ja 40 %, jos omaisuus on omistettu
-   * vähintään 10 vuotta"
+   * The calculation that involves the “deemed acquisition cost” subtracts
+   * 20% of the selling price if the holding time of the assets was less than 10 years,
+   * and 40% if the holding time was at least 10 years.
    */
   const heldMoreThan10Years =
     taxInfo.fromDate
       .add(Temporal.Duration.from({ years: 10 }))
       .until(taxInfo.toDate).days >= 0
-  const acquisitionCostAssumption = heldMoreThan10Years ? 0.4 : 0.2
+  const deemedAcquisitionCost = heldMoreThan10Years ? 0.4 : 0.2
 
   /**
-   * realisoitunut arvonnousu .. lasketaan verovelvolliselle edullisemmalla tavalla:
-   * .. luovutushinnasta voidaan vähentää joko todellinen hankintahinta kuluineen tai
-   * .. hankintameno-olettama ilman mitään muita kuluja
+   * The calculation is performed in such a way that the result is beneficial for the taxpayer:
+   * Either the actual acquisition cost (plus selling expenses) is subtracted,
+   * or a “deemed acquisition cost” is subtracted
+   * (the latter alternative does not allow any selling expenses to be included).
    */
   return Math.min(
-    taxInfo.toEur * (1 - acquisitionCostAssumption),
+    taxInfo.toEur * (1 - deemedAcquisitionCost),
     taxInfo.toEur - taxInfo.fromEur
   )
 }

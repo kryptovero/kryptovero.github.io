@@ -3,7 +3,7 @@ import { Temporal } from "proposal-temporal"
 import { calculateGains, Ledger } from "."
 
 // Sourced from:
-// https://www.vero.fi/syventavat-vero-ohjeet/ohje-hakusivu/48411/virtuaalivaluuttojen-verotus3/#:~:text=Esimerkki%204
+// https://www.vero.fi/en/detailed-guidance/guidance/48411/taxation-of-virtual-currencies3/#:~:text=Example%204
 
 const initialLedger: Ledger = [
   {
@@ -18,7 +18,7 @@ const initialLedger: Ledger = [
   },
 ]
 
-test("Esimerkki 4.1", (t) => {
+test("Example 4.1", (t) => {
   t.is(
     calculateGains(
       Temporal.PlainDate.from("2019-12-31"),
@@ -38,7 +38,7 @@ const ledger2: Ledger = [
   },
 ]
 
-test("Esimerkki 4.2", (t) => {
+test("Example 4.2", (t) => {
   t.is(
     calculateGains(
       Temporal.PlainDate.from("2020-02-01"),
@@ -58,7 +58,7 @@ const ledger3: Ledger = [
   },
 ]
 
-test("Esimerkki 4.3", (t) => {
+test("Example 4.3", (t) => {
   t.is(
     calculateGains(
       Temporal.PlainDate.from("2020-03-01"),

@@ -4,7 +4,7 @@ import { calculateGains, Ledger, stateAt } from "."
 import { eq } from "./testutils"
 
 // Sourced from:
-// https://www.vero.fi/syventavat-vero-ohjeet/ohje-hakusivu/48411/virtuaalivaluuttojen-verotus3/#:~:text=Esimerkki%203
+// https://www.vero.fi/en/detailed-guidance/guidance/48411/taxation-of-virtual-currencies3/#:~:text=Example%203
 
 const initialLedger: Ledger = [
   {
@@ -19,7 +19,7 @@ const initialLedger: Ledger = [
   },
 ]
 
-test("Esimerkki 3.1", (t) => {
+test("Example 3.1", (t) => {
   t.is(
     calculateGains(
       Temporal.PlainDate.from("2019-12-31"),
@@ -48,7 +48,7 @@ const ledger2: Ledger = [
   },
 ]
 
-test("Esimerkki 3.2", (t) => {
+test("Example 3.2", (t) => {
   t.is(
     calculateGains(
       Temporal.PlainDate.from("2020-02-01"),
@@ -69,7 +69,7 @@ const ledger2_10YearVersion: Ledger = [
   },
 ]
 
-test("Esimerkki 3.2, but hold for over 10 years", (t) => {
+test("Example 3.2, but hold for over 10 years", (t) => {
   t.is(
     calculateGains(
       Temporal.PlainDate.from("2020-02-01"),
