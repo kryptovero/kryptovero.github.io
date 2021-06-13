@@ -1,0 +1,65 @@
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
+    "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue",
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: #171c22;
+  color: #e8eff7;
+  font-size: 18px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+* > :first-child {
+  margin-top: 0;
+}
+
+input,
+select {
+  appearance: none;
+  font: inherit;
+  background: transparent;
+  color: inherit;
+  border: 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 0.1em 0.2em;
+
+  &:focus-visible {
+    outline: 0;
+    border-bottom-color: rgba(255, 255, 255, 0.8);
+  }
+}
+
+input {
+  &[type="date"] {
+    width: 5.5em;
+
+    &::-webkit-calendar-picker-indicator {
+      display: none;
+    }
+  }
+}
+
+select {
+  padding-right: 2em;
+  background: linear-gradient(
+        -45deg,
+        transparent 47%,
+        white 47%,
+        white 53%,
+        transparent 53%
+      )
+      102% 50%/25% 25% no-repeat,
+    linear-gradient(
+        45deg,
+        transparent 47%,
+        white 47%,
+        white 53%,
+        transparent 53%
+      )
+      93% 50%/25% 25% no-repeat;
+}

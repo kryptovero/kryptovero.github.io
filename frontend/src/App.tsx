@@ -1,8 +1,8 @@
 import "./App.css";
-import NewEntryForm from "./NewEntryForm";
+import LedgerTable from "./LedgerTable";
 
 export default () => (
   <main>
-    <NewEntryForm />
+    <LedgerTable />
   </main>
 );
