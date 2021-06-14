@@ -7,7 +7,6 @@ export const NumberInput: React.FC<{
   <input
     defaultValue={value}
     key={value}
-    pattern="0-9,."
     onBlur={(e) =>
       onChange(
         parseFloat(e.target.value.replace(",", ".").replace(/[^\d\.]/g, "")) ||

@@ -39,3 +39,21 @@ td {
     background-color: rgba(255, 155, 255, 0.05);
   }
 }
+
+.fab {
+  position: fixed;
+  bottom: 1em;
+  right: calc(50% - 13em);
+  background: #c0ffee;
+  color: black;
+  display: flex;
+  width: 1.7em;
+  height: 1.7em;
+  justify-content: center;
+  align-items: center;
+  font-size: 2em;
+  border-radius: 50%;
+  text-decoration: none;
+  padding-bottom: 0.1em;
+  box-shadow: 0 0.15em 0.5em 0.1em black;
+}

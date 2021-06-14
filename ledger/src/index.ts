@@ -94,5 +94,5 @@ export const stateAt = (
   return snapshot
 }
 
-const sortLedger = (ledger: Ledger) =>
+export const sortLedger = (ledger: Ledger) =>
   [...ledger].sort((a, b) => a.date.since(b.date).days)

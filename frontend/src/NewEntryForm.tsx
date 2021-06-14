@@ -1,16 +1,23 @@
 import { Temporal } from "proposal-temporal";
-import { useEffect } from "react";
+import React, { useEffect } from "react";
 import { useState } from "react";
 import { LedgerItem } from "../../ledger/build";
 import { getPriceAt } from "./coinbase";
+import { NumberInput } from "./NumberInput";
 import "./NewEntryForm.scss";
+import { Action } from "./reducer";
+import { useHistory } from "react-router-dom";
+import { useCallback } from "react";
 
 const COINS = ["EUR", "BTC", "ETH", "FIL", "A", "B", "C"];
 
-export default () => {
+const NewEntryForm: React.FC<{ dispatch: React.Dispatch<Action> }> = ({
+  dispatch,
+}) => {
+  const history = useHistory();
   const [data, setData] = useState<LedgerItem>({
     date: Temporal.now
-      .plainDate("gregory")
+      .plainDate("iso8601")
       .subtract(Temporal.Duration.from({ days: 1 })),
     from: { symbol: COINS[0], amount: 1, unitPriceEur: 1 },
     to: { symbol: COINS[1], amount: 1 },
@@ -33,15 +40,22 @@ export default () => {
         setData({ ...data, to: { ...data.to, unitPriceEur: price } })
       );
   }, [data.to.symbol, data.date]);
+
+  const addRow = useCallback(() => {
+    dispatch({ action: "create", item: data });
+    history.push("/");
+  }, [history, data, dispatch]);
+
   return (
-    <form>
+    <form onSubmit={addRow}>
       <h1>Add new entry</h1>
       <label>
         <span>Date</span>
         <input
           type="date"
-          value={data.date.toString({ calendarName: "never" })}
-          onChange={(e) =>
+          defaultValue={data.date.toString({ calendarName: "never" })}
+          key={data.date.toString()}
+          onBlur={(e) =>
             setData({ ...data, date: Temporal.PlainDate.from(e.target.value) })
           }
         />
@@ -66,45 +80,33 @@ export default () => {
         </label>
         <label>
           <span>Amount</span>
-          <input
-            defaultValue={data.from.amount}
-            key={data.from.amount}
-            pattern="0-9,."
-            onBlur={(e) =>
+          <NumberInput
+            value={data.from.amount}
+            onChange={(amount) =>
               setData({
                 ...data,
                 from: {
                   ...data.from,
-                  amount:
-                    parseFloat(
-                      e.target.value.replace(",", ".").replace(/[^\d\.]/g, "")
-                    ) || 1,
+                  amount: amount || 1,
                 },
               })
             }
-            type="decimal"
           />
         </label>
         {data.from.symbol !== "EUR" && (
           <label>
             <span>á price (€)</span>
-            <input
-              defaultValue={data.from.unitPriceEur ?? 1}
-              key={data.from.unitPriceEur}
-              pattern="0-9,."
-              onBlur={(e) =>
+            <NumberInput
+              value={data.from.unitPriceEur ?? 1}
+              onChange={(amount) =>
                 setData({
                   ...data,
                   from: {
                     ...data.from,
-                    unitPriceEur:
-                      parseFloat(
-                        e.target.value.replace(",", ".").replace(/[^\d\.]/g, "")
-                      ) || 1,
+                    unitPriceEur: amount || 1,
                   },
                 })
               }
-              type="decimal"
             />
           </label>
         )}
@@ -129,44 +131,33 @@ export default () => {
         </label>
         <label>
           <span>Amount</span>
-          <input
-            defaultValue={data.to.amount}
-            key={data.to.amount.toString()}
-            onBlur={(e) =>
+          <NumberInput
+            value={data.to.amount}
+            onChange={(amount) =>
               setData({
                 ...data,
                 to: {
                   ...data.to,
-                  amount:
-                    parseFloat(
-                      e.target.value.replace(",", ".").replace(/[^\d\.]/g, "")
-                    ) || 1,
+                  amount: amount || 1,
                 },
               })
             }
-            type="decimal"
           />
         </label>
         {data.to.symbol !== "EUR" && (
           <label>
             <span>á price (€)</span>
-            <input
-              defaultValue={data.to.unitPriceEur ?? 1}
-              key={data.to.unitPriceEur}
-              pattern="0-9,."
-              onBlur={(e) =>
+            <NumberInput
+              value={data.to.unitPriceEur}
+              onChange={(amount) =>
                 setData({
                   ...data,
                   to: {
                     ...data.to,
-                    unitPriceEur:
-                      parseFloat(
-                        e.target.value.replace(",", ".").replace(/[^\d\.]/g, "")
-                      ) || 1,
+                    unitPriceEur: amount || 1,
                   },
                 })
               }
-              type="decimal"
             />
           </label>
         )}
@@ -175,3 +166,5 @@ export default () => {
     </form>
   );
 };
+
+export default NewEntryForm;
