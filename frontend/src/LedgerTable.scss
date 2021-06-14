@@ -56,4 +56,8 @@ td {
   text-decoration: none;
   padding-bottom: 0.1em;
   box-shadow: 0 0.15em 0.5em 0.1em black;
+
+  & + .fab {
+    right: calc(50% - 15em);
+  }
 }

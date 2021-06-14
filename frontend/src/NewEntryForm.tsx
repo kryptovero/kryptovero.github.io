@@ -9,18 +9,17 @@ import { Action } from "./reducer";
 import { useHistory } from "react-router-dom";
 import { useCallback } from "react";
 
-const COINS = ["EUR", "BTC", "ETH", "FIL", "A", "B", "C"];
-
-const NewEntryForm: React.FC<{ dispatch: React.Dispatch<Action> }> = ({
-  dispatch,
-}) => {
+const NewEntryForm: React.FC<{
+  dispatch: React.Dispatch<Action>;
+  symbols: string[];
+}> = ({ dispatch, symbols }) => {
   const history = useHistory();
   const [data, setData] = useState<LedgerItem>({
     date: Temporal.now
       .plainDate("iso8601")
       .subtract(Temporal.Duration.from({ days: 1 })),
-    from: { symbol: COINS[0], amount: 1, unitPriceEur: 1 },
-    to: { symbol: COINS[1], amount: 1 },
+    from: { symbol: "EUR", amount: 1, unitPriceEur: 1 },
+    to: { symbol: "BTC", amount: 1 },
   });
 
   useEffect(() => {
@@ -73,7 +72,7 @@ const NewEntryForm: React.FC<{ dispatch: React.Dispatch<Action> }> = ({
               })
             }
           >
-            {COINS.map((coin) => (
+            {symbols.map((coin) => (
               <option key={coin}>{coin}</option>
             ))}
           </select>
@@ -124,7 +123,7 @@ const NewEntryForm: React.FC<{ dispatch: React.Dispatch<Action> }> = ({
               })
             }
           >
-            {COINS.map((coin) => (
+            {symbols.map((coin) => (
               <option key={coin}>{coin}</option>
             ))}
           </select>

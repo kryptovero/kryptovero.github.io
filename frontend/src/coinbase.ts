@@ -14,3 +14,14 @@ export const getPriceAt = async (date: Temporal.PlainDate, symbol: string) => {
   const close = result?.[0]?.[4] ?? 1;
   return (open + close) / 2;
 };
+
+type ProductResponse = { quote_currency: string; base_currency: string }[];
+export const getCoins = async () => {
+  const result = await fetch(`https://api.pro.coinbase.com/products`).then(
+    (res) => res.json() as Promise<ProductResponse>
+  );
+  return result
+    .filter((res) => res.quote_currency === "EUR")
+    .map(({ base_currency }) => base_currency)
+    .concat("EUR");
+};
