@@ -7,6 +7,7 @@
   "private": true,
   "workspaces": [
     "ledger",
+    "csv-reader",
     "frontend"
   ],
   "scripts": {

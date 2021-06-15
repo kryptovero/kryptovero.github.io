@@ -1,0 +1,31 @@
+{
+  "name": "@fifo/csv-reader",
+  "version": "1.0.0",
+  "main": "build/index.js",
+  "types": "build/index.d.ts",
+  "license": "MIT",
+  "dependencies": {
+    "@types/node": "^15.12.2",
+    "ava": "^3.15.0",
+    "proposal-temporal": "^0.8.0",
+    "ts-node": "^10.0.0",
+    "typescript": "^4.3.2",
+    "@fifo/ledger": "*"
+  },
+  "scripts": {
+    "start": "yarn build",
+    "build": "tsc",
+    "test": "ava --verbose"
+  },
+  "ava": {
+    "extensions": [
+      "ts"
+    ],
+    "require": [
+      "ts-node/register"
+    ]
+  },
+  "prettier": {
+    "semi": false
+  }
+}

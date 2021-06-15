@@ -3,7 +3,7 @@ import { Action } from "./reducer";
 import "./Importer.scss";
 import { useState } from "react";
 import { useCallback } from "react";
-import { readCsv } from "./csvReader";
+import { readCsv } from "@fifo/csv-reader";
 import { useHistory } from "react-router-dom";
 
 const Importer: React.FC<{ dispatch: React.Dispatch<Action> }> = ({

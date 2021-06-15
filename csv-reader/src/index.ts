@@ -1,5 +1,5 @@
-import { Temporal } from "proposal-temporal";
-import { Ledger, LedgerItem } from "../../ledger/build";
+import { Temporal } from "proposal-temporal"
+import { Ledger, LedgerItem } from "@fifo/ledger"
 
 export function readCsv(input: string): Ledger {
   return input
@@ -8,28 +8,30 @@ export function readCsv(input: string): Ledger {
     .filter((row) => row.trim())
     .map((row) => parseRow(row.split(",")))
     .map((row): LedgerItem => {
-      const pair = row.product.split("-");
-      const fromSymbol = row.side === "BUY" ? pair[1] : pair[0];
-      const toSymbol = row.side === "BUY" ? pair[0] : pair[1];
-      const fromAmount = row.side === "BUY" ? -row.total : row.size;
-      const toAmount = row.side === "BUY" ? row.size : row.total;
-      const fromUnitPriceEur = row.side === "BUY" ? 1 : row.price;
-      const toUnitPriceEur = row.side === "BUY" ? row.price : 1;
-      debugger;
+      const pair = row.product.split("-")
+      const fromSymbol = row.side === "BUY" ? pair[1] : pair[0]
+      const toSymbol = row.side === "BUY" ? pair[0] : pair[1]
+      const fromAmount = row.side === "BUY" ? -row.total : row.size
+      const toAmount = row.side === "BUY" ? row.size : row.total
+      const fromUnitPriceEur = row.side === "BUY" ? 1 : row.price
+      const toUnitPriceEur = row.side === "BUY" ? row.price : 1
+      debugger
       return {
         date: row.createdAt,
         from: {
           symbol: fromSymbol,
           amount: fromAmount,
-          unitPriceEur: fromUnitPriceEur,
+          unitPriceEur:
+            row.priceFeeTotalUnit === "EUR" ? fromUnitPriceEur : undefined,
         },
         to: {
           symbol: toSymbol,
           amount: toAmount,
-          unitPriceEur: toUnitPriceEur,
+          unitPriceEur:
+            row.priceFeeTotalUnit === "EUR" ? toUnitPriceEur : undefined,
         },
-      };
-    });
+      }
+    })
 }
 
 function parseRow(strRow: string[]) {
@@ -45,7 +47,7 @@ function parseRow(strRow: string[]) {
     fee,
     total,
     priceFeeTotalUnit,
-  ] = strRow;
+  ] = strRow
   return {
     portfolio,
     tradeId: parseInt(tradeId, 10),
@@ -58,5 +60,5 @@ function parseRow(strRow: string[]) {
     fee: parseFloat(fee),
     total: parseFloat(total),
     priceFeeTotalUnit,
-  } as const;
+  } as const
 }
