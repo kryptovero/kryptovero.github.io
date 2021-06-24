@@ -1,0 +1,15 @@
+.centeredContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 50px;
+  gap: 24px;
+
+  :global(.btn) {
+    width: 249px;
+
+    &:not(:global(.btn + .btn)) {
+      margin-top: 40px;
+    }
+  }
+}
