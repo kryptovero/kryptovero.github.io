@@ -1,3 +1,5 @@
+@import "./list.modules.scss";
+
 .row {
   margin: 0 53px;
   $gap: 91px;
@@ -17,10 +19,7 @@
 .secondRowWrapper {
   margin-top: 100px;
   grid-template-columns: 448px auto;
-
-  small {
-    font-size: 14px;
-  }
+  font-size: 24px;
 }
 
 .thirdRowWrapper {
@@ -37,14 +36,4 @@
 .h1 {
   font-size: 48px;
   line-height: 60px;
-}
-
-.info {
-  color: #535461;
-  font-size: 20px;
-  padding-bottom: 1em;
-
-  li:last-child & {
-    padding-bottom: 0.5em;
-  }
 }

@@ -1,0 +1,20 @@
+@import "./list.modules.scss";
+
+.centeredContainer {
+  display: flex;
+  flex-direction: column;
+  max-width: 824px;
+  margin: auto;
+  gap: 24px;
+  font-size: 24px;
+
+  h1 {
+    margin-top: 0;
+    margin-left: 79px;
+  }
+
+  :global(.btn) {
+    align-self: start;
+    font-size: 18px;
+  }
+}

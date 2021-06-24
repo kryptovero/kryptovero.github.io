@@ -1,4 +1,5 @@
 import Head from "next/head";
+import Link from "next/link";
 import styles from "../styles/Header.module.scss";
 
 export default function Header({
@@ -20,7 +21,9 @@ export default function Header({
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <header className={styles.header}>
-        <div className={styles.logo}>kryptovero.fi</div>
+        <Link href="/">
+          <a className={styles.logo}>kryptovero.fi</a>
+        </Link>
         <div className={styles.buttons}>{buttons}</div>
       </header>
     </>

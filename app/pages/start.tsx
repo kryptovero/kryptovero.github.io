@@ -4,7 +4,7 @@ import Header from "../components/Header";
 import startIllustration from "../public/start-illustration.svg";
 import s from "../styles/Start.module.scss";
 
-export default function Home() {
+export default function Start() {
   return (
     <>
       <Header additionalTitle="Aloita käyttö" />
