@@ -1,0 +1,19 @@
+.header {
+  padding: 46px 53px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.logo {
+  font-weight: 600;
+  font-size: 36px;
+  color: #00b51f;
+}
+
+.buttons {
+  display: grid;
+  gap: 45px;
+  grid-auto-flow: column;
+  align-items: center;
+}
