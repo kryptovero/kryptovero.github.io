@@ -5,6 +5,10 @@
   color: #fff;
   display: inline-block;
   text-align: center;
+  font: inherit;
+  border: 0;
+  appearance: none;
+  cursor: pointer;
 
   &--secondary {
     border: 1px solid currentColor;
