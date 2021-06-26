@@ -1,24 +1,23 @@
 import s from "../styles/Importer.module.scss";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useCallback } from "react";
-import { readCsv } from "@fifo/csv-reader";
-import { Ledger } from "@fifo/ledger";
 
-const Importer: React.FC<{ onImport?: (ledger: Ledger) => void }> = ({
+const Importer: React.FC<{ onRead?: (ledger: string) => void }> = ({
   children,
-  onImport,
+  onRead,
 }) => {
   const [isHovering, setIsHovering] = useState(false);
+  const inputRef = useRef<HTMLInputElement>();
   const onHover = useCallback(() => setIsHovering(true), [setIsHovering]);
   const onBlur = useCallback(() => setIsHovering(false), [setIsHovering]);
   const handleUpload = useCallback(
     async (file: FileList | null) => {
       if (!file || file.length === 0) return;
       const text = await file[0].text();
-      const result = readCsv(text);
-      onImport?.(result);
+      onRead?.(text);
+      inputRef.current.value = null;
     },
-    [onImport]
+    [onRead]
   );
 
   return (
@@ -31,7 +30,11 @@ const Importer: React.FC<{ onImport?: (ledger: Ledger) => void }> = ({
       onDragEnd={onBlur}
       onDrop={onBlur}
     >
-      <input type="file" onChange={(e) => handleUpload(e.target.files)} />
+      <input
+        type="file"
+        ref={inputRef}
+        onChange={(e) => handleUpload(e.target.files)}
+      />
       {children}
     </form>
   );

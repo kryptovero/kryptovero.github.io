@@ -15,7 +15,6 @@ export function readCsv(input: string): Ledger {
       const toAmount = row.side === "BUY" ? row.size : row.total
       const fromUnitPriceEur = row.side === "BUY" ? 1 : row.price
       const toUnitPriceEur = row.side === "BUY" ? row.price : 1
-      debugger
       return {
         date: row.createdAt,
         from: {
