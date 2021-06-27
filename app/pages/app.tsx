@@ -4,14 +4,12 @@ import { Temporal } from "proposal-temporal";
 import Header from "../components/Header";
 import { useSave } from "../components/use-save";
 import s from "../styles/App.module.scss";
-import { useCallback, useEffect } from "react";
+import { useEffect } from "react";
 import EntryRow from "../components/EntryRow";
 import Importer from "../components/Importer";
 import Link from "next/link";
 import {
   appStateAtom,
-  AppStateItem,
-  appStateItemsAtom,
   computedStateAtom,
   useAppState,
 } from "../components/app-state";

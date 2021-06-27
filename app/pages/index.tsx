@@ -1,8 +1,5 @@
-import Image from "next/image";
 import Header from "../components/Header";
 import heroImage from "../public/hero.svg";
-import illustrationImage1 from "../public/illustrationImage1.svg";
-import illustrationImage2 from "../public/illustrationImage2.svg";
 import styles from "../styles/Home.module.scss";
 import Link from "next/link";
 
@@ -38,10 +35,10 @@ export default function Home() {
               <a className="btn">Aloita käyttö</a>
             </Link>
           </div>
-          <Image src={heroImage} alt="" layout="fixed" />
+          <img src="/hero.svg" alt="" />
         </div>
         <div className={`${styles.row} ${styles.secondRowWrapper}`}>
-          <Image src={illustrationImage1} alt="" layout="fixed" />
+          <img src="/illustrationImage1.svg" alt="" />
           <div>
             <h2 className={styles.h1}>Näin se toimii</h2>
             <ol>
@@ -97,7 +94,7 @@ export default function Home() {
               sinun koneellasi. Ostodata pysyy vain sinun laitteellasi.
             </p>
           </div>
-          <Image src={illustrationImage2} alt="" layout="fixed" />
+          <img src="/illustrationImage2.svg" alt="" />
         </div>
       </main>
     </>

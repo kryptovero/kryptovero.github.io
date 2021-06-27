@@ -1,6 +1,3 @@
-import Image from "next/image";
-import editIcon from "../public/edit.svg";
-import deleteIcon from "../public/delete.svg";
 import s from "../styles/EntryRow.module.scss";
 import { useState } from "react";
 import { LedgerItem } from "@fifo/ledger";
@@ -84,7 +81,7 @@ export default function EntryRow({ item }: { item: LedgerItem }) {
         </tbody>
       </table>
       <button type="button" className={`btn btn--secondary ${s.editButton}`}>
-        <Image src={editIcon} alt="Edit" />
+        <img src="/edit.svg" alt="Edit" />
       </button>
 
       <button
@@ -92,7 +89,7 @@ export default function EntryRow({ item }: { item: LedgerItem }) {
         className={`btn btn--secondary ${s.deleteButton}`}
         onClick={() => addAppStateItem({ type: "deleteRow", rowId: item.id })}
       >
-        <Image src={deleteIcon} alt="Delete" />
+        <img src="/delete.svg" alt="Delete" />
       </button>
     </div>
   );

@@ -1,7 +1,5 @@
-import Image from "next/image";
 import Link from "next/link";
 import Header from "../components/Header";
-import startIllustration from "../public/start-illustration.svg";
 import s from "../styles/Start.module.scss";
 
 export default function Start() {
@@ -9,7 +7,7 @@ export default function Start() {
     <>
       <Header additionalTitle="Aloita käyttö" />
       <main className={s.centeredContainer}>
-        <Image src={startIllustration} alt="" />
+        <img src="/start-illustration.svg" alt="" />
         <Link href="/onboarding">
           <a className="btn">Olen ensikertalainen</a>
         </Link>
