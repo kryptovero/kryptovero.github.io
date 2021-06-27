@@ -19,6 +19,7 @@ export default function Header({
         </title>
         {description && <meta name="description" content={description} />}
         <link rel="icon" href="/favicon.ico" />
+        <meta name="viewport" content="width=1440" />
       </Head>
       <header className={styles.header}>
         <Link href="/">
