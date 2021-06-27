@@ -1,48 +1,33 @@
-import { atom, useAtom } from "jotai";
-import { focusAtom } from "jotai/optics";
-import { Ledger } from "../../ledger/build";
+import { useAtom } from "jotai";
+import { calculateGains } from "@fifo/ledger";
+import { Temporal } from "proposal-temporal";
 import Header from "../components/Header";
 import { useSave } from "../components/use-save";
-import { readCsv } from "@fifo/csv-reader";
 import s from "../styles/App.module.scss";
 import { useCallback, useEffect } from "react";
+import EntryRow from "../components/EntryRow";
 import Importer from "../components/Importer";
-
-type ImportAppStateItem = { type: "importCoinbaseCsv"; data: string };
-type AppStateItem = ImportAppStateItem;
-type AppState = { version: 0; items: AppStateItem[] };
-
-const applyLedgerItem = (ledger: Ledger, next: AppStateItem) => {
-  switch (next.type) {
-    case "importCoinbaseCsv":
-      return [...ledger, ...readCsv(next.data)];
-    default:
-      return ledger;
-  }
-};
-
-const appStateAtom = atom<AppState>({ version: 0, items: [] });
-const appStateItemsAtom = focusAtom(appStateAtom, (optic) =>
-  optic.prop("items")
-);
-const computedStateAtom = atom<Ledger>((get) =>
-  get(appStateItemsAtom).reduce<Ledger>(applyLedgerItem, [])
-);
+import Link from "next/link";
+import {
+  appStateAtom,
+  AppStateItem,
+  appStateItemsAtom,
+  computedStateAtom,
+  useAppState,
+} from "../components/app-state";
 
 export default function App() {
   const [onSave, onAutosave] = useSave();
   const [appState] = useAtom(appStateAtom);
-  const [appStateItems, setAppStateItems] = useAtom(appStateItemsAtom);
-  const addAppStateItem = useCallback(
-    (newItem: AppStateItem) => {
-      setAppStateItems([...appStateItems, newItem]);
-    },
-    [setAppStateItems, appStateItems]
-  );
+  const addAppStateItem = useAppState();
   useEffect(() => {
     onAutosave(appState);
   }, [appState, onAutosave]);
   const [ledger] = useAtom(computedStateAtom);
+  const uniqYears = Array.from(
+    new Set(ledger.map((item) => item.date.year))
+  ).sort((a, b) => b - a);
+
   return (
     <>
       <Header
@@ -54,7 +39,45 @@ export default function App() {
       />
       <main className={s.app}>
         <div className={s.container}>
-          <pre>{JSON.stringify(ledger, null, 2)}</pre>
+          {uniqYears.map((year) => {
+            const gains = calculateGains(
+              Temporal.PlainDate.from(`${year}-01-01`),
+              Temporal.PlainDate.from(`${year}-12-31`),
+              ledger
+            );
+            const taxes = gains * 0.3;
+            return (
+              <>
+                <dl className={s.box}>
+                  <dt>Verotettavan tulon märä {year}</dt>
+                  <dd>
+                    {gains.toLocaleString("fi", { maximumFractionDigits: 2 })} €
+                  </dd>
+                </dl>
+                <dl className={s.box}>
+                  <dt>Maksettavan veron määrä {year}</dt>
+                  <dd>
+                    {taxes.toLocaleString("fi", { maximumFractionDigits: 2 })} €
+                  </dd>
+                </dl>
+                <div className={`${s.box} ${s.buttons}`}>
+                  <Link href="/">
+                    <a className="btn btn-wider">Lisää uusi rivi...</a>
+                  </Link>
+                  <Link href="/">
+                    <a className="btn btn--secondary btn-wider">
+                      Tuo Coinbasesta...
+                    </a>
+                  </Link>
+                </div>
+                {ledger
+                  .filter((item) => item.date.year === year)
+                  .map((item) => (
+                    <EntryRow key={item.id} item={item} />
+                  ))}
+              </>
+            );
+          })}
         </div>
 
         <div className={s.container}>

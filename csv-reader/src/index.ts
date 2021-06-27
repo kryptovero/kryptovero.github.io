@@ -16,6 +16,7 @@ export function readCsv(input: string): Ledger {
       const fromUnitPriceEur = row.side === "BUY" ? 1 : row.price
       const toUnitPriceEur = row.side === "BUY" ? row.price : 1
       return {
+        id: `coinbase_${row.tradeId}`,
         date: row.createdAt,
         from: {
           symbol: fromSymbol,
@@ -29,6 +30,7 @@ export function readCsv(input: string): Ledger {
           unitPriceEur:
             row.priceFeeTotalUnit === "EUR" ? toUnitPriceEur : undefined,
         },
+        fee: { amount: row.fee, symbol: row.priceFeeTotalUnit },
       }
     })
 }

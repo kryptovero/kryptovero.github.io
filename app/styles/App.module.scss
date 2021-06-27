@@ -10,10 +10,38 @@
     margin: auto;
     padding: 46px 53px;
   }
+
+  dl {
+    display: inline-block;
+    margin-right: 36px;
+    margin-top: 0;
+    text-align: center;
+    padding: 36px 39px 28px;
+
+    dt {
+      font-size: 18px;
+      color: #3f3d56;
+    }
+
+    dd {
+      margin: 0;
+      margin-top: -7px;
+      font-weight: bold;
+      font-size: 52px;
+      color: #00b51f;
+    }
+  }
 }
 
 .box {
   background-color: white;
   border-radius: 10px;
-  padding: 25px 18px;
+  padding: 28px 25px;
+  margin-bottom: 30px;
+}
+
+.buttons {
+  display: flex;
+  flex-direction: row;
+  gap: 25px;
 }

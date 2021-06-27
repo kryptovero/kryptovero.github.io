@@ -8,11 +8,13 @@ import { eq } from "./testutils"
 
 const initialLedger: Ledger = [
   {
+    id: "1",
     date: Temporal.PlainDate.from("2020-01-01"),
     from: { amount: 10_000, symbol: "EUR", unitPriceEur: 1 },
     to: { amount: 10, symbol: "B", unitPriceEur: 1_000 },
   },
   {
+    id: "2",
     date: Temporal.PlainDate.from("2020-02-01"),
     from: { amount: 1, symbol: "B", unitPriceEur: 500 },
     to: { amount: 500, symbol: "EUR", unitPriceEur: 1 },
@@ -41,6 +43,7 @@ test("Example 3.1", (t) => {
 const ledger2: Ledger = [
   ...initialLedger,
   {
+    id: "3",
     date: Temporal.PlainDate.from("2020-03-01"),
     from: { symbol: "B", amount: 9, unitPriceEur: 10_000 },
     to: { symbol: "EUR", amount: 90_000, unitPriceEur: 1 },
@@ -62,6 +65,7 @@ test("Example 3.2", (t) => {
 const ledger2_10YearVersion: Ledger = [
   ...initialLedger,
   {
+    id: "4",
     date: Temporal.PlainDate.from("2030-03-01"),
     from: { symbol: "B", amount: 9, unitPriceEur: 10_000 },
     to: { symbol: "EUR", amount: 90_000, unitPriceEur: 1 },

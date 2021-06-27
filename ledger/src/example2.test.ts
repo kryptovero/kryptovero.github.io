@@ -7,11 +7,13 @@ import { calculateGains, Ledger } from "."
 
 const initialLedger: Ledger = [
   {
+    id: "1",
     date: Temporal.PlainDate.from("2020-01-01"),
     from: { amount: 1_000, symbol: "EUR", unitPriceEur: 1 },
     to: { amount: 200, symbol: "A", unitPriceEur: 5 },
   },
   {
+    id: "2",
     date: Temporal.PlainDate.from("2020-02-01"),
     from: { amount: 100, symbol: "A", unitPriceEur: 10 },
     to: { amount: 1_000, symbol: "EUR", unitPriceEur: 1 },

@@ -8,6 +8,7 @@ export type LedgerItem = {
   from: Coin
   to: Coin
   fee?: Coin
+  id: string
 }
 
 export type Ledger = LedgerItem[]
