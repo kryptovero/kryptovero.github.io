@@ -8,7 +8,6 @@
   "workspaces": [
     "ledger",
     "csv-reader",
-    "frontend",
     "app"
   ],
   "scripts": {
