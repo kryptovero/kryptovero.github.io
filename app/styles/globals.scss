@@ -55,3 +55,25 @@ em {
 small {
   font-size: 14px;
 }
+
+input,
+select {
+  background: #ffffff;
+  border: 1px solid #d0cde1;
+  border-radius: 2px;
+  font: inherit;
+  font-weight: normal;
+  font-size: 18px;
+  padding: 11px 25px;
+  color: #3f3d56;
+  width: 100%;
+}
+
+select {
+  padding: 11px 10px;
+}
+
+label {
+  font-size: 18px;
+  color: #3f3d56;
+}

@@ -45,3 +45,78 @@
   flex-direction: row;
   gap: 25px;
 }
+
+.overlayBg {
+  animation: backdrop 0.5s forwards;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.13);
+}
+
+@keyframes backdrop {
+  0% {
+    opacity: 0;
+    backdrop-filter: blur(0px);
+  }
+  100% {
+    opacity: 1;
+    backdrop-filter: blur(10px);
+  }
+}
+
+.overlay {
+  $width: 620px;
+  position: fixed;
+  top: 25vh;
+  left: calc(50% - #{$width / 2});
+  width: $width;
+  margin: auto;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 20px;
+  padding: 58px;
+  display: grid;
+  grid-template-columns: auto auto;
+  grid-template-rows: auto;
+  grid-template-areas: "header header" "first ." "second third" "buttons buttons";
+  gap: 25px 42px;
+
+  h2 {
+    grid-area: header;
+    margin: 0;
+  }
+  label {
+    &:first-of-type {
+      grid-area: first;
+    }
+    &:nth-of-type(2) {
+      grid-area: second;
+    }
+    &:nth-of-type(3) {
+      grid-area: third;
+    }
+
+    > div {
+      display: flex;
+      flex-direction: row;
+      gap: 9px;
+    }
+
+    select {
+      width: 86px;
+    }
+  }
+  .overlayButtons {
+    grid-area: buttons;
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 7px;
+    margin-bottom: -23px;
+  }
+}
+
+.numberInput {
+  text-align: right;
+}

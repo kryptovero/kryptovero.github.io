@@ -11,7 +11,7 @@ export default function Start() {
         <Link href="/onboarding">
           <a className="btn">Olen ensikertalainen</a>
         </Link>
-        <Link href="/load-file">
+        <Link href="/load">
           <a className="btn btn--secondary">Jatka siitä mihin jäin</a>
         </Link>
       </main>
