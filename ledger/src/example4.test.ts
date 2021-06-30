@@ -1,6 +1,7 @@
 import test from "ava"
 import { Temporal } from "proposal-temporal"
 import { calculateGains, Ledger } from "."
+import { toComputedLedger } from "./to-computed-ledger"
 
 // Sourced from:
 // https://www.vero.fi/en/detailed-guidance/guidance/48411/taxation-of-virtual-currencies3/#:~:text=Example%204

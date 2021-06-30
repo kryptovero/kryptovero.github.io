@@ -1,7 +1,8 @@
 import test from "ava"
 import { Temporal } from "proposal-temporal"
-import { calculateGains, Ledger, stateAt } from "."
+import { calculateGains, Ledger } from "."
 import { eq } from "./testutils"
+import { toComputedLedger } from "./to-computed-ledger"
 
 // Sourced from:
 // https://www.vero.fi/en/detailed-guidance/guidance/48411/taxation-of-virtual-currencies3/#:~:text=Example%201
@@ -77,21 +78,24 @@ test("Example 1.3", (t) => {
     ),
     175
   )
-  const result = stateAt(Temporal.PlainDate.from("2017-05-01"), ledger3)
+  const result = toComputedLedger(ledger3)
   const expected = {
     A: [
       {
         amount: 50,
+        item: ledger3[0],
         purchaseDate: Temporal.PlainDate.from("2017-01-01"),
         unitPriceEur: 5,
       },
       {
         amount: 100,
+        item: ledger3[1],
         purchaseDate: Temporal.PlainDate.from("2017-02-01"),
         unitPriceEur: 10,
       },
       {
         amount: 20,
+        item: ledger3[4],
         purchaseDate: Temporal.PlainDate.from("2017-05-01"),
         unitPriceEur: 20,
       },
@@ -100,19 +104,13 @@ test("Example 1.3", (t) => {
     C: [
       {
         amount: 30,
+        item: ledger3[3],
         purchaseDate: Temporal.PlainDate.from("2017-04-01"),
         unitPriceEur: 100 / 30,
       },
     ],
-    EUR: [
-      {
-        amount: -1500,
-        purchaseDate: Temporal.PlainDate.from("2017-02-01"),
-        unitPriceEur: 1,
-      },
-    ],
   }
-  eq(t, result, expected)
+  eq(t, result.left, expected)
 })
 
 const ledger4: Ledger = [
