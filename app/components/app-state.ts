@@ -1,6 +1,12 @@
 import { atom, useAtom } from "jotai";
 import { focusAtom } from "jotai/optics";
-import { Ledger, LedgerItem, sortLedger } from "@fifo/ledger";
+import {
+  Ledger,
+  LedgerItem,
+  sortLedger,
+  toComputedLedger,
+  ComputedLedger,
+} from "@fifo/ledger";
 import { readCsv } from "@fifo/csv-reader";
 import { useCallback } from "react";
 import { getCoins } from "./coinbase";
@@ -33,8 +39,8 @@ const applyLedgerItem = (ledger: Ledger, next: AppStateItem) => {
 };
 
 export const appStateAtom = atom<AppState>({ version: 0, items: [] });
-export const computedStateAtom = atom<Ledger>((get) =>
-  get(appStateItemsAtom).reduce<Ledger>(applyLedgerItem, [])
+export const computedStateAtom = atom<ComputedLedger>((get) =>
+  toComputedLedger(get(appStateItemsAtom).reduce<Ledger>(applyLedgerItem, []))
 );
 
 const appStateItemsAtom = focusAtom(appStateAtom, (optic) =>

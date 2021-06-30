@@ -16,7 +16,7 @@ export default function App() {
   useEffect(() => {
     onAutosave(appState);
   }, [appState, onAutosave]);
-  const [ledger] = useAtom(computedStateAtom);
+  const [{ ledger }] = useAtom(computedStateAtom);
   const uniqYears = Array.from(
     new Set(ledger.map((item) => item.date.year))
   ).sort((a, b) => b - a);

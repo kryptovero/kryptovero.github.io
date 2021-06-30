@@ -1,6 +1,10 @@
 import { Temporal } from "proposal-temporal"
 import { toComputedLedger } from "./to-computed-ledger"
-export { toComputedLedger } from "./to-computed-ledger"
+export {
+  toComputedLedger,
+  ComputedLedger,
+  ComputedLedgerItem,
+} from "./to-computed-ledger"
 
 export type Coin = { unitPriceEur?: number; symbol: string; amount: number }
 

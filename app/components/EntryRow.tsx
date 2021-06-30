@@ -1,9 +1,9 @@
 import s from "../styles/EntryRow.module.scss";
 import { useState } from "react";
-import { LedgerItem } from "@fifo/ledger";
+import { ComputedLedgerItem } from "@fifo/ledger";
 import { useAppState } from "./app-state";
 
-export default function EntryRow({ item }: { item: LedgerItem }) {
+export default function EntryRow({ item }: { item: ComputedLedgerItem }) {
   const [open, setOpen] = useState(false);
   const addAppStateItem = useAppState();
 
@@ -56,8 +56,10 @@ export default function EntryRow({ item }: { item: LedgerItem }) {
               {item.fee?.amount.toLocaleString("fi") ?? 0}{" "}
               {item.fee?.symbol ?? "EUR"}
             </td>
-            <td className={s.up}>??? EUR</td>
-            <td>??? EUR</td>
+            <td className={s.up}>
+              {item.taxableGain.toLocaleString("fi")} EUR
+            </td>
+            <td>{(item.taxableGain * 0.3).toLocaleString("fi")} EUR</td>
           </tr>
         </tbody>
 
