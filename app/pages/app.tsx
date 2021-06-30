@@ -6,19 +6,13 @@ import { useSave } from "../components/use-save";
 import s from "../styles/App.module.scss";
 import { useEffect, useState } from "react";
 import EntryRow from "../components/EntryRow";
-import Importer from "../components/Importer";
 import Link from "next/link";
-import {
-  appStateAtom,
-  computedStateAtom,
-  useAppState,
-} from "../components/app-state";
+import { appStateAtom, computedStateAtom } from "../components/app-state";
 import AddRowForm from "../components/AddRowForm";
 
 export default function App() {
   const [onSave, onAutosave] = useSave();
   const [appState] = useAtom(appStateAtom);
-  const addAppStateItem = useAppState();
   useEffect(() => {
     onAutosave(appState);
   }, [appState, onAutosave]);
@@ -79,19 +73,6 @@ export default function App() {
               </>
             );
           })}
-        </div>
-
-        <div className={s.container}>
-          <Importer
-            onRead={async (file) =>
-              addAppStateItem({
-                data: await file.text(),
-                type: "importCoinbaseCsv",
-              })
-            }
-          >
-            Drop CSV here
-          </Importer>
         </div>
       </main>
       {showAddRow && <AddRowForm onHide={() => setShowAddRow(false)} />}
