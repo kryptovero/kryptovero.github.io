@@ -14,10 +14,15 @@ export type AppStateItem =
   | InsertRowAppStateItem;
 export type AppState = { version: 0; items: AppStateItem[] };
 
+const uniqByIdFilter = ({ id }: LedgerItem, index: number, ledger: Ledger) =>
+  ledger.findIndex((item) => item.id === id) === index;
+
 const applyLedgerItem = (ledger: Ledger, next: AppStateItem) => {
   switch (next.type) {
     case "importCoinbaseCsv":
-      return [...ledger, ...readCsv(next.data)];
+      return sortLedger(
+        [...readCsv(next.data), ...ledger].filter(uniqByIdFilter)
+      );
     case "deleteRow":
       return ledger.filter((item) => item.id !== next.rowId);
     case "insertRow":
