@@ -13,6 +13,7 @@ import {
   computedStateAtom,
   useAppState,
 } from "../components/app-state";
+import AddRowForm from "../components/AddRowForm";
 
 export default function App() {
   const [onSave, onAutosave] = useSave();
@@ -93,46 +94,7 @@ export default function App() {
           </Importer>
         </div>
       </main>
-      {showAddRow && (
-        <>
-          <div
-            className={s.overlayBg}
-            onClick={() => setShowAddRow(false)}
-          ></div>
-          <aside className={s.overlay}>
-            <h2>Lisää uusi rivi...</h2>
-            <label>
-              Päivämäärä
-              <div>
-                <input className={s.dateInput} value="10.6.2021" />
-              </div>
-            </label>
-            <label>
-              Mistä
-              <div>
-                <input className={s.numberInput} value="10 000" />
-                <select>
-                  <option>EUR</option>
-                </select>
-              </div>
-            </label>
-            <label>
-              Mihin
-              <div>
-                <input className={s.numberInput} value="5" />
-                <select>
-                  <option>BTC</option>
-                </select>
-              </div>
-            </label>
-            <div className={s.overlayButtons}>
-              <button type="submit" className="btn">
-                Lisää
-              </button>
-            </div>
-          </aside>
-        </>
-      )}
+      {showAddRow && <AddRowForm onHide={() => setShowAddRow(false)} />}
     </>
   );
 }

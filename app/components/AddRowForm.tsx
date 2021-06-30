@@ -1,0 +1,161 @@
+import React, { Suspense, useCallback, useRef, useState } from "react";
+import { LedgerItem } from "@fifo/ledger";
+import { Temporal } from "proposal-temporal";
+import s from "../styles/AddRowForm.module.scss";
+import { v4 as uuid } from "uuid";
+import { useAtom } from "jotai";
+import { availableSymbolsAtom, useAppState } from "./app-state";
+
+const DEFAULT_ITEM = (): LedgerItem => ({
+  date: Temporal.now.plainDate("iso8601"),
+  from: { amount: 1000, symbol: "EUR" },
+  to: { amount: 1, symbol: "BTC" },
+  id: `kryptovero_${uuid()}`,
+});
+
+function AddRowForm({ onHide }: { onHide: () => void }) {
+  const [data, setData] = useState(DEFAULT_ITEM());
+  const [symbols] = useAtom(availableSymbolsAtom);
+  const addAppStateItem = useAppState();
+  const onSubmit = useCallback(() => {
+    addAppStateItem({ type: "insertRow", data });
+    onHide();
+  }, [onHide, addAppStateItem, data]);
+
+  return (
+    <>
+      <div className={s.overlayBg} onClick={onHide}></div>
+      <aside className={s.overlay}>
+        <form className={s.overlayForm} onSubmit={onSubmit}>
+          <h2>Lisää uusi rivi...</h2>
+          <label>
+            Päivämäärä
+            <div>
+              <input
+                className={s.dateInput}
+                key={data.date.toLocaleString("fi")}
+                defaultValue={data.date.toLocaleString("fi")}
+                pattern="^\d{1,2}\.\d{1,2}\.\d{4}$"
+                required
+                onBlur={(e) => {
+                  if (e.currentTarget.checkValidity()) {
+                    const [day, month, year] = e.currentTarget.value
+                      .split(".")
+                      .map((v) => parseInt(v, 10));
+                    setData({
+                      ...data,
+                      date: Temporal.PlainDate.from({ day, month, year }),
+                    });
+                  }
+                }}
+              />
+              <div className={s.error}>Käytä muotoa pp.kk.vvvv</div>
+            </div>
+          </label>
+          <label>
+            Mistä
+            <div>
+              <input
+                className={s.numberInput}
+                defaultValue={data.from.amount.toLocaleString("fi", {
+                  useGrouping: true,
+                  maximumFractionDigits: 20,
+                })}
+                key={`from_amount_${data.from.amount}`}
+                pattern="[0-9 ]+(,[0-9]+)?"
+                required
+                onBlur={(e) =>
+                  setData({
+                    ...data,
+                    from: {
+                      ...data.from,
+                      amount: parseFloat(
+                        e.target.value.replace(/ /g, "").replace(",", ".")
+                      ),
+                    },
+                  })
+                }
+              />
+              <select
+                value={data.from.symbol}
+                onChange={(e) =>
+                  setData({
+                    ...data,
+                    from: { ...data.from, symbol: e.currentTarget.value },
+                  })
+                }
+              >
+                {symbols.map((symbol) => (
+                  <option key={symbol} value={symbol}>
+                    {symbol}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </label>
+          <label>
+            Mihin
+            <div>
+              <input
+                className={s.numberInput}
+                defaultValue={data.to.amount.toLocaleString("fi", {
+                  useGrouping: true,
+                  maximumFractionDigits: 20,
+                })}
+                key={`to_amount_${data.to.amount}`}
+                pattern="[0-9 ]+(,[0-9]+)?"
+                required
+                onBlur={(e) =>
+                  setData({
+                    ...data,
+                    to: {
+                      ...data.to,
+                      amount: parseFloat(
+                        e.target.value.replace(/ /g, "").replace(",", ".")
+                      ),
+                    },
+                  })
+                }
+              />
+              <select
+                value={data.to.symbol}
+                onChange={(e) =>
+                  setData({
+                    ...data,
+                    to: { ...data.to, symbol: e.currentTarget.value },
+                  })
+                }
+              >
+                {symbols.map((symbol) => (
+                  <option key={symbol} value={symbol}>
+                    {symbol}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </label>
+          <div className={s.overlayButtons}>
+            <button type="submit" className="btn">
+              Lisää
+            </button>
+          </div>
+        </form>
+      </aside>
+    </>
+  );
+}
+
+const withErrorBoundary = <P extends {}>(
+  Component: React.ComponentType<P>
+): React.FC<P> => {
+  function WithErrorBoundary(props) {
+    return (
+      <Suspense fallback={<div className={s.overlayBg} />}>
+        <Component {...props} />
+      </Suspense>
+    );
+  }
+  return WithErrorBoundary;
+};
+
+export default withErrorBoundary(AddRowForm);

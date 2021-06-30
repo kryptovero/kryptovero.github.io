@@ -67,6 +67,10 @@ select {
   padding: 11px 25px;
   color: #3f3d56;
   width: 100%;
+
+  &:invalid {
+    border-color: red;
+  }
 }
 
 select {
