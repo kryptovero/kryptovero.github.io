@@ -23,6 +23,8 @@ export type TaxInfo = {
   toEur: number
   fromDate: Temporal.PlainDate
   toDate: Temporal.PlainDate
+  fromFeesEur: number
+  toFeesEur: number
 }
 
 type LedgerSnapshotItem = {
@@ -52,7 +54,7 @@ export const calculateTax = (taxInfo: TaxInfo) => {
    */
   return Math.min(
     taxInfo.toEur * (1 - deemedAcquisitionCost),
-    taxInfo.toEur - taxInfo.fromEur
+    taxInfo.toEur - taxInfo.fromEur - taxInfo.fromFeesEur - taxInfo.toFeesEur
   )
 }
 

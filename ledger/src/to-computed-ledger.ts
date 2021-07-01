@@ -41,7 +41,12 @@ const compute = (
   const taxGains: TaxInfo[] = []
   const knownToUnitPrice = calculateToUnitPrice(ledgerItem, 0)
   const itemsConsumed: ComputedLedgerItem[] = []
+  const ledgerItemFeeAmountEur =
+    (ledgerItem.fee?.unitPriceEur ?? 0) * (ledgerItem.fee?.amount ?? 0)
+
   for (const item of currFrom) {
+    const itemFeeAmountEur =
+      (item.item.fee?.unitPriceEur ?? 0) * (item.item.fee?.amount ?? 0)
     if (remaining >= item.amount) {
       remaining -= item.amount
       purchaseSumEur += item.amount * item.unitPriceEur
@@ -55,6 +60,9 @@ const compute = (
             knownToUnitPrice,
           fromDate: item.purchaseDate,
           toDate: ledgerItem.date,
+          fromFeesEur: itemFeeAmountEur,
+          toFeesEur:
+            ledgerItemFeeAmountEur * (item.amount / ledgerItem.from.amount),
         }
         taxGains.push(taxInfo)
         itemsConsumed.push({ ...item.item, taxableGain: calculateTax(taxInfo) })
@@ -75,6 +83,9 @@ const compute = (
             knownToUnitPrice,
           fromDate: item.purchaseDate,
           toDate: ledgerItem.date,
+          fromFeesEur: itemFeeAmountEur * (remaining / item.amount),
+          toFeesEur:
+            ledgerItemFeeAmountEur * (remaining / ledgerItem.from.amount),
         }
         itemsConsumed.push({ ...item.item, taxableGain: calculateTax(taxInfo) })
         taxGains.push(taxInfo)
