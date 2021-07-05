@@ -56,10 +56,18 @@ export default function EntryRow({ item }: { item: ComputedLedgerItem }) {
               {item.fee?.amount.toLocaleString("fi") ?? 0}{" "}
               {item.fee?.symbol ?? "EUR"}
             </td>
-            <td className={s.up}>
-              {item.taxableGain.toLocaleString("fi")} EUR
+            <td className={item.taxableGain >= 0 ? s.up : s.down}>
+              {item.taxableGain.toLocaleString("fi", {
+                maximumFractionDigits: 2,
+              })}{" "}
+              EUR
             </td>
-            <td>{(item.taxableGain * 0.3).toLocaleString("fi")} EUR</td>
+            <td>
+              {(item.taxableGain * 0.3).toLocaleString("fi", {
+                maximumFractionDigits: 2,
+              })}{" "}
+              EUR
+            </td>
           </tr>
         </tbody>
 

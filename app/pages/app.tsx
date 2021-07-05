@@ -67,6 +67,7 @@ export default function App() {
                 </dl>
                 {ledger
                   .filter((item) => item.date.year === year)
+                  .reverse()
                   .map((item) => (
                     <EntryRow key={item.id} item={item} />
                   ))}

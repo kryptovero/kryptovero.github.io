@@ -21,6 +21,13 @@ export const getCoins = async () => {
     (res) => res.json() as Promise<ProductResponse>
   );
   return Array.from(
-    new Set(result.map(({ base_currency }) => base_currency).sort())
+    new Set(
+      result
+        .flatMap(({ base_currency, quote_currency }) => [
+          base_currency,
+          quote_currency,
+        ])
+        .sort()
+    )
   );
 };

@@ -81,7 +81,12 @@ function AddRowForm({ onHide }: { onHide: () => void }) {
                 onChange={(e) =>
                   setData({
                     ...data,
-                    from: { ...data.from, symbol: e.currentTarget.value },
+                    from: {
+                      ...data.from,
+                      symbol: e.currentTarget.value,
+                      unitPriceEur:
+                        e.currentTarget.value === "EUR" ? 1 : undefined,
+                    },
                   })
                 }
               >
@@ -122,7 +127,12 @@ function AddRowForm({ onHide }: { onHide: () => void }) {
                 onChange={(e) =>
                   setData({
                     ...data,
-                    to: { ...data.to, symbol: e.currentTarget.value },
+                    to: {
+                      ...data.to,
+                      symbol: e.currentTarget.value,
+                      unitPriceEur:
+                        e.currentTarget.value === "EUR" ? 1 : undefined,
+                    },
                   })
                 }
               >

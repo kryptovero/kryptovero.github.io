@@ -109,6 +109,19 @@
         margin: 0 5px 3px -3px;
       }
     }
+
+    &.down {
+      color: #ff2954;
+
+      &::before {
+        display: inline-block;
+        content: "";
+        border: 10px solid transparent;
+        border-top-color: #ff2954;
+        transform: scaleX(0.6);
+        margin: 13px 5px -7px -3px;
+      }
+    }
   }
 
   tbody:first-of-type td:first-child {
