@@ -103,15 +103,15 @@ export const useAutofillCoinUnitPrices = () => {
           })
         );
 
-      if (item.fee && item.fee.symbol !== "EUR") {
+      if (item.fee && item.fee.symbol !== "EUR" && !item.fee.unitPriceEur) {
         if (item.fee.symbol === item.from.symbol && item.from.unitPriceEur)
           addAppStateItem({
             type: "editRow",
             data: {
               ...item,
               fee: { ...item.fee, unitPriceEur: item.from.unitPriceEur },
-              note: "Automatic fill of fee unit price",
             },
+            note: "Automatic fill of fee unit price",
           });
         if (item.fee.symbol === item.to.symbol && item.to.unitPriceEur)
           addAppStateItem({
