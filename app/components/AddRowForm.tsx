@@ -1,8 +1,7 @@
-import React, { Suspense, useCallback, useRef, useState } from "react";
-import { Ledger, LedgerItem } from "@fifo/ledger";
+import React, { Suspense, useCallback, useState } from "react";
+import { Ledger } from "@fifo/ledger";
 import { Temporal } from "proposal-temporal";
 import s from "../styles/AddRowForm.module.scss";
-import { v4 as uuid } from "uuid";
 import { useAtom } from "jotai";
 import { availableSymbolsAtom, useAppState } from "./app-state";
 
@@ -10,6 +9,7 @@ const DEFAULT_ITEM = {
   date: Temporal.now.plainDate("iso8601"),
   from: { amount: 1000, symbol: "EUR" },
   to: { amount: 1, symbol: "BTC" },
+  fee: { amount: 0, symbol: "EUR", unitPriceEur: 1 },
 };
 
 function AddRowForm({
@@ -24,6 +24,7 @@ function AddRowForm({
   const [data, setData] = useState(
     ledger.find((item) => item.id === id) ?? { ...DEFAULT_ITEM, id }
   );
+  const fee = data.fee ?? DEFAULT_ITEM.fee;
   const isNew = !ledger.some((item) => item.id === id);
   const [symbols] = useAtom(availableSymbolsAtom);
   const addAppStateItem = useAppState();
@@ -143,6 +144,52 @@ function AddRowForm({
                     ...data,
                     to: {
                       ...data.to,
+                      symbol: e.currentTarget.value,
+                      unitPriceEur:
+                        e.currentTarget.value === "EUR" ? 1 : undefined,
+                    },
+                  })
+                }
+              >
+                {symbols.map((symbol) => (
+                  <option key={symbol} value={symbol}>
+                    {symbol}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </label>
+          <label>
+            Välityspalkkio
+            <div>
+              <input
+                className={s.numberInput}
+                defaultValue={fee.amount.toLocaleString("fi", {
+                  useGrouping: true,
+                  maximumFractionDigits: 20,
+                })}
+                key={`to_amount_${fee.amount}`}
+                pattern="[0-9 ]+(,[0-9]+)?"
+                required
+                onBlur={(e) =>
+                  setData({
+                    ...data,
+                    fee: {
+                      ...fee,
+                      amount: parseFloat(
+                        e.target.value.replace(/ /g, "").replace(",", ".")
+                      ),
+                    },
+                  })
+                }
+              />
+              <select
+                value={fee.symbol}
+                onChange={(e) =>
+                  setData({
+                    ...data,
+                    fee: {
+                      ...fee,
                       symbol: e.currentTarget.value,
                       unitPriceEur:
                         e.currentTarget.value === "EUR" ? 1 : undefined,

@@ -34,7 +34,7 @@
     display: grid;
     grid-template-columns: auto auto;
     grid-template-rows: auto;
-    grid-template-areas: "header header" "first ." "second third" "buttons buttons";
+    grid-template-areas: "header header" "first ." "second third" "fourth ." "buttons buttons";
     gap: 25px 42px;
   }
   h2 {
@@ -50,6 +50,9 @@
     }
     &:nth-of-type(3) {
       grid-area: third;
+    }
+    &:nth-of-type(4) {
+      grid-area: fourth;
     }
 
     > div {
