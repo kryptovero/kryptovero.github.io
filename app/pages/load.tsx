@@ -1,3 +1,4 @@
+import { Temporal } from "proposal-temporal";
 import Header from "../components/Header";
 import Importer from "../components/Importer";
 import s from "../styles/Load.module.scss";
@@ -20,7 +21,7 @@ export default function CoinbaseImport() {
           accept="application/kryptovero.fi"
           onRead={async (file) => {
             // Todo: Handle autosave
-            setAppState(JSON.parse(await file.text()));
+            setAppState(JSON.parse(await file.text(), reviveDates));
             router.push("/app");
           }}
         >
@@ -36,3 +37,8 @@ export default function CoinbaseImport() {
     </>
   );
 }
+
+const reviveDates = (_, value: any) => {
+  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) return Temporal.PlainDate.from(value);
+  return value;
+};
