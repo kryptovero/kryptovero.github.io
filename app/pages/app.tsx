@@ -12,13 +12,15 @@ import {
   appStateAtom,
   computedStateAtom,
   useAutofillCoinUnitPrices,
+  usePreventUserLeaving,
 } from "../components/app-state";
 import AddRowForm from "../components/AddRowForm";
 
 export default function App() {
   useAutofillCoinUnitPrices();
-  const [onSave, onAutosave] = useSave();
+  usePreventUserLeaving();
   const [appState] = useAtom(appStateAtom);
+  const [onSave, onAutosave] = useSave();
   useEffect(() => {
     onAutosave(appState);
   }, [appState, onAutosave]);
@@ -27,6 +29,7 @@ export default function App() {
     new Set(ledger.map((item) => item.date.year))
   ).sort((a, b) => b - a);
   const [showEditRow, setShowEditRow] = useState<string | null>(null);
+  console.log(ledger);
 
   return (
     <>

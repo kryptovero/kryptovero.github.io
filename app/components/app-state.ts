@@ -128,3 +128,13 @@ export const useAutofillCoinUnitPrices = () => {
 };
 
 export const availableSymbolsAtom = atom(async () => getCoins());
+
+export const usePreventUserLeaving = () => {
+  useEffect(() => {
+    window.onbeforeunload = confirmExit;
+    function confirmExit() {
+      return "Are you sure you want to exit? You may have unsaved changes.";
+    }
+    return () => (window.onbeforeunload = null);
+  }, []);
+};
