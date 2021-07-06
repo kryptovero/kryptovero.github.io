@@ -14,10 +14,12 @@ import { getCoins } from "./coinbase";
 type ImportAppStateItem = { type: "importCoinbaseCsv"; data: string };
 type DeleteRowAppStateItem = { type: "deleteRow"; rowId: string };
 type InsertRowAppStateItem = { type: "insertRow"; data: LedgerItem };
+type EditRowAppStateItem = { type: "editRow"; data: LedgerItem };
 export type AppStateItem =
   | ImportAppStateItem
   | DeleteRowAppStateItem
-  | InsertRowAppStateItem;
+  | InsertRowAppStateItem
+  | EditRowAppStateItem;
 export type AppState = { version: 0; items: AppStateItem[] };
 
 const uniqByIdFilter = ({ id }: LedgerItem, index: number, ledger: Ledger) =>
@@ -33,6 +35,10 @@ const applyLedgerItem = (ledger: Ledger, next: AppStateItem) => {
       return ledger.filter((item) => item.id !== next.rowId);
     case "insertRow":
       return sortLedger(ledger.concat(next.data));
+    case "editRow":
+      return sortLedger(
+        ledger.filter((item) => item.id !== next.data.id).concat(next.data)
+      );
     default:
       return ledger;
   }

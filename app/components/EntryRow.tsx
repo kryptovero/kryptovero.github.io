@@ -6,9 +6,11 @@ import { useAppState } from "./app-state";
 export default function EntryRow({
   item,
   consumed,
+  onEdit,
 }: {
   item: ComputedLedgerItem;
   consumed: ComputedLedgerItem[];
+  onEdit?: (id: string) => void;
 }) {
   const [open, setOpen] = useState(false);
   const addAppStateItem = useAppState();
@@ -51,7 +53,11 @@ export default function EntryRow({
           </tbody>
         )}
       </table>
-      <button type="button" className={`btn btn--secondary ${s.editButton}`}>
+      <button
+        type="button"
+        onClick={() => onEdit(item.id)}
+        className={`btn btn--secondary ${s.editButton}`}
+      >
         <img src="/edit.svg" alt="Edit" />
       </button>
 

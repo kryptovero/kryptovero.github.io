@@ -1,20 +1,30 @@
 import React, { Suspense, useCallback, useRef, useState } from "react";
-import { LedgerItem } from "@fifo/ledger";
+import { Ledger, LedgerItem } from "@fifo/ledger";
 import { Temporal } from "proposal-temporal";
 import s from "../styles/AddRowForm.module.scss";
 import { v4 as uuid } from "uuid";
 import { useAtom } from "jotai";
 import { availableSymbolsAtom, useAppState } from "./app-state";
 
-const DEFAULT_ITEM = (): LedgerItem => ({
+const DEFAULT_ITEM = {
   date: Temporal.now.plainDate("iso8601"),
   from: { amount: 1000, symbol: "EUR" },
   to: { amount: 1, symbol: "BTC" },
-  id: `kryptovero_${uuid()}`,
-});
+};
 
-function AddRowForm({ onHide }: { onHide: () => void }) {
-  const [data, setData] = useState(DEFAULT_ITEM());
+function AddRowForm({
+  onHide,
+  ledger,
+  id,
+}: {
+  onHide: () => void;
+  ledger: Ledger;
+  id: string;
+}) {
+  const [data, setData] = useState(
+    ledger.find((item) => item.id === id) ?? { ...DEFAULT_ITEM, id }
+  );
+  const isNew = !ledger.some((item) => item.id === id);
   const [symbols] = useAtom(availableSymbolsAtom);
   const addAppStateItem = useAppState();
   const onSubmit = useCallback(() => {
@@ -33,17 +43,20 @@ function AddRowForm({ onHide }: { onHide: () => void }) {
             },
           }
         : data;
-    addAppStateItem({ type: "insertRow", data: filledData });
+    addAppStateItem({
+      type: isNew ? "insertRow" : "editRow",
+      data: filledData,
+    });
     onHide();
     jumpToCorrectElementAfterRender(filledData.id);
-  }, [onHide, addAppStateItem, data]);
+  }, [onHide, addAppStateItem, data, isNew]);
 
   return (
     <>
       <div className={s.overlayBg} onClick={onHide}></div>
       <aside className={s.overlay}>
         <form className={s.overlayForm} onSubmit={onSubmit}>
-          <h2>Lisää uusi rivi...</h2>
+          <h2>{isNew ? "Lisää uusi rivi..." : "Muokkaa riviä"}</h2>
           <label>
             Päivämäärä
             <div>
@@ -162,7 +175,7 @@ function AddRowForm({ onHide }: { onHide: () => void }) {
           </label>
           <div className={s.overlayButtons}>
             <button type="submit" className="btn">
-              Lisää
+              {isNew ? "Lisää" : "Muokkaa"}
             </button>
           </div>
         </form>

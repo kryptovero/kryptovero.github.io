@@ -1,4 +1,5 @@
 import { useAtom } from "jotai";
+import { v4 as uuid } from "uuid";
 import { calculateGains } from "@fifo/ledger";
 import { Temporal } from "proposal-temporal";
 import Header from "../components/Header";
@@ -20,7 +21,7 @@ export default function App() {
   const uniqYears = Array.from(
     new Set(ledger.map((item) => item.date.year))
   ).sort((a, b) => b - a);
-  const [showAddRow, setShowAddRow] = useState(false);
+  const [showEditRow, setShowEditRow] = useState<string | null>(null);
 
   return (
     <>
@@ -36,7 +37,7 @@ export default function App() {
           <div className={`${s.box} ${s.buttons}`}>
             <button
               className="btn btn-wider"
-              onClick={() => setShowAddRow(true)}
+              onClick={() => setShowEditRow(`kryptovero_${uuid()}`)}
             >
               Lisää uusi rivi...
             </button>
@@ -73,6 +74,7 @@ export default function App() {
                       key={item.id}
                       item={item}
                       consumed={consumed[item.id] ?? []}
+                      onEdit={setShowEditRow}
                     />
                   ))}
               </>
@@ -80,7 +82,13 @@ export default function App() {
           })}
         </div>
       </main>
-      {showAddRow && <AddRowForm onHide={() => setShowAddRow(false)} />}
+      {showEditRow && (
+        <AddRowForm
+          id={showEditRow}
+          ledger={ledger}
+          onHide={() => setShowEditRow(null)}
+        />
+      )}
     </>
   );
 }
