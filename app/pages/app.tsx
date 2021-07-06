@@ -5,7 +5,7 @@ import { Temporal } from "proposal-temporal";
 import Header from "../components/Header";
 import { useSave } from "../components/use-save";
 import s from "../styles/App.module.scss";
-import { useEffect, useState } from "react";
+import { useEffect, useState, Fragment } from "react";
 import EntryRow from "../components/EntryRow";
 import Link from "next/link";
 import {
@@ -58,7 +58,7 @@ export default function App() {
             );
             const taxes = gains * 0.3;
             return (
-              <>
+              <Fragment key={year}>
                 <dl className={s.box}>
                   <dt>Verotettavan tulon märä {year}</dt>
                   <dd>
@@ -82,7 +82,7 @@ export default function App() {
                       onEdit={setShowEditRow}
                     />
                   ))}
-              </>
+              </Fragment>
             );
           })}
         </div>
