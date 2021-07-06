@@ -16,7 +16,7 @@ export default function App() {
   useEffect(() => {
     onAutosave(appState);
   }, [appState, onAutosave]);
-  const [{ ledger }] = useAtom(computedStateAtom);
+  const [{ ledger, consumed }] = useAtom(computedStateAtom);
   const uniqYears = Array.from(
     new Set(ledger.map((item) => item.date.year))
   ).sort((a, b) => b - a);
@@ -69,7 +69,11 @@ export default function App() {
                   .filter((item) => item.date.year === year)
                   .reverse()
                   .map((item) => (
-                    <EntryRow key={item.id} item={item} />
+                    <EntryRow
+                      key={item.id}
+                      item={item}
+                      consumed={consumed[item.id] ?? []}
+                    />
                   ))}
               </>
             );

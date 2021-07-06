@@ -3,17 +3,24 @@ import { useState } from "react";
 import { ComputedLedgerItem } from "@fifo/ledger";
 import { useAppState } from "./app-state";
 
-export default function EntryRow({ item }: { item: ComputedLedgerItem }) {
+export default function EntryRow({
+  item,
+  consumed,
+}: {
+  item: ComputedLedgerItem;
+  consumed: ComputedLedgerItem[];
+}) {
   const [open, setOpen] = useState(false);
   const addAppStateItem = useAppState();
 
   return (
-    <div className={`${s.entryrow} ${open ? "" : s.showLess}`}>
+    <div className={`${s.entryrow} ${open ? "" : s.showLess}`} id={item.id}>
       <button
-        className={`${s.opener} ${open ? s.open : ""}`}
+        className={`${s.opener} ${open ? s.open : ""} ${
+          consumed.length === 0 ? s.hidden : ""
+        }`}
         onClick={() => setOpen(!open)}
         aria-label="Open"
-        disabled
       ></button>
       <table>
         <thead>
@@ -27,68 +34,22 @@ export default function EntryRow({ item }: { item: ComputedLedgerItem }) {
           </tr>
         </thead>
         <tbody>
-          <tr>
-            <td>{item.date.toLocaleString("fi")}</td>
-            <td>
-              {item.from.amount.toLocaleString("fi")} {item.from.symbol}
-              {item.from.symbol !== "EUR" &&
-                item.from.unitPriceEur !== undefined && (
-                  <>
-                    {" "}
-                    <small>
-                      ({item.to.unitPriceEur.toLocaleString("fi")} EUR/kpl)
-                    </small>
-                  </>
-                )}
-            </td>
-            <td>
-              {item.to.amount.toLocaleString("fi")} {item.to.symbol}
-              {item.to.symbol !== "EUR" && item.to.unitPriceEur !== undefined && (
-                <>
-                  {" "}
-                  <small>
-                    ({item.to.unitPriceEur.toLocaleString("fi")} EUR/kpl)
-                  </small>
-                </>
-              )}
-            </td>
-            <td>
-              {item.fee?.amount.toLocaleString("fi") ?? 0}{" "}
-              {item.fee?.symbol ?? "EUR"}
-            </td>
-            <td className={item.taxableGain >= 0 ? s.up : s.down}>
-              {item.taxableGain.toLocaleString("fi", {
-                maximumFractionDigits: 2,
-              })}{" "}
-              EUR
-            </td>
-            <td>
-              {(item.taxableGain * 0.3).toLocaleString("fi", {
-                maximumFractionDigits: 2,
-              })}{" "}
-              EUR
-            </td>
-          </tr>
+          <ItemRow item={item} />
         </tbody>
 
-        <tbody>
-          <tr>
-            <td colSpan={6} className={s.tdHeading}>
-              Ostot joista verotettu tulo on laskettu:
-            </td>
-          </tr>
+        {consumed.length > 0 && (
+          <tbody>
+            <tr>
+              <td colSpan={6} className={s.tdHeading}>
+                Ostot joista verotettu tulo on laskettu:
+              </td>
+            </tr>
 
-          <tr>
-            <td>20.5.2021</td>
-            <td>10 000 EUR</td>
-            <td>
-              5 BTC <small>(2 000 EUR/kpl)</small>
-            </td>
-            <td>11 EUR</td>
-            <td className={s.up}>232 EUR</td>
-            <td>69,60 EUR</td>
-          </tr>
-        </tbody>
+            {consumed.map((item) => (
+              <ItemRow item={item} key={item.id} linkTo />
+            ))}
+          </tbody>
+        )}
       </table>
       <button type="button" className={`btn btn--secondary ${s.editButton}`}>
         <img src="/edit.svg" alt="Edit" />
@@ -102,5 +63,58 @@ export default function EntryRow({ item }: { item: ComputedLedgerItem }) {
         <img src="/delete.svg" alt="Delete" />
       </button>
     </div>
+  );
+}
+
+function ItemRow({
+  item,
+  linkTo,
+}: {
+  item: ComputedLedgerItem;
+  linkTo?: boolean;
+}) {
+  return (
+    <tr>
+      <td>
+        <a href={linkTo ? `#${item.id}` : undefined} title={item.id}>
+          {item.date.toLocaleString("fi")}
+        </a>
+      </td>
+      <td>
+        {item.from.amount.toLocaleString("fi")} {item.from.symbol}
+        {item.from.symbol !== "EUR" && item.from.unitPriceEur !== undefined && (
+          <>
+            {" "}
+            <small>
+              ({item.from.unitPriceEur.toLocaleString("fi")} EUR/kpl)
+            </small>
+          </>
+        )}
+      </td>
+      <td>
+        {item.to.amount.toLocaleString("fi")} {item.to.symbol}
+        {item.to.symbol !== "EUR" && item.to.unitPriceEur !== undefined && (
+          <>
+            {" "}
+            <small>({item.to.unitPriceEur.toLocaleString("fi")} EUR/kpl)</small>
+          </>
+        )}
+      </td>
+      <td>
+        {item.fee?.amount.toLocaleString("fi") ?? 0} {item.fee?.symbol ?? "EUR"}
+      </td>
+      <td className={item.taxableGain >= 0 ? s.up : s.down}>
+        {item.taxableGain.toLocaleString("fi", {
+          maximumFractionDigits: 2,
+        })}{" "}
+        EUR
+      </td>
+      <td>
+        {(item.taxableGain * 0.3).toLocaleString("fi", {
+          maximumFractionDigits: 2,
+        })}{" "}
+        EUR
+      </td>
+    </tr>
   );
 }

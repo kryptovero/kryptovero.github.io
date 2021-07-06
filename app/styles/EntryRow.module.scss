@@ -13,6 +13,10 @@
   &.open {
     transform: none;
   }
+
+  &.hidden {
+    visibility: hidden;
+  }
 }
 
 .tdHeading {
@@ -42,6 +46,10 @@
   border-radius: 10px;
   padding: 14px 24px 21px;
   margin-bottom: 30px;
+
+  &:target {
+    animation: highlight_entryrow 2s;
+  }
 
   &.showLess {
     height: 90px;
@@ -131,5 +139,14 @@
 
   small {
     color: #858492;
+  }
+}
+
+@keyframes highlight_entryrow {
+  0% {
+    background-color: lighten(#00b51f, 60%);
+  }
+  100% {
+    background-color: white;
   }
 }

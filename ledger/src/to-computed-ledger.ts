@@ -87,7 +87,26 @@ const compute = (
           toFeesEur:
             ledgerItemFeeAmountEur * (remaining / ledgerItem.from.amount),
         }
-        itemsConsumed.push({ ...item.item, taxableGain: calculateTax(taxInfo) })
+        itemsConsumed.push({
+          date: item.item.date,
+          id: item.item.id,
+          from: {
+            ...item.item.from,
+            amount: item.item.from.amount * (remaining / item.item.to.amount),
+          },
+          to: {
+            ...item.item.to,
+            amount: remaining,
+          },
+          fee: item.item.fee
+            ? {
+                ...item.item.fee,
+                amount:
+                  item.item.fee.amount * (remaining / item.item.to.amount),
+              }
+            : undefined,
+          taxableGain: calculateTax(taxInfo),
+        })
         taxGains.push(taxInfo)
       }
       remaining = 0

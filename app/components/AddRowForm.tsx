@@ -18,8 +18,24 @@ function AddRowForm({ onHide }: { onHide: () => void }) {
   const [symbols] = useAtom(availableSymbolsAtom);
   const addAppStateItem = useAppState();
   const onSubmit = useCallback(() => {
-    addAppStateItem({ type: "insertRow", data });
+    const filledData =
+      data.from.symbol === "EUR"
+        ? {
+            ...data,
+            to: { ...data.to, unitPriceEur: data.from.amount / data.to.amount },
+          }
+        : data.to.symbol === "EUR"
+        ? {
+            ...data,
+            from: {
+              ...data.from,
+              unitPriceEur: data.to.amount / data.from.amount,
+            },
+          }
+        : data;
+    addAppStateItem({ type: "insertRow", data: filledData });
     onHide();
+    jumpToCorrectElementAfterRender(filledData.id);
   }, [onHide, addAppStateItem, data]);
 
   return (
@@ -167,5 +183,9 @@ const withErrorBoundary = <P extends {}>(
   }
   return WithErrorBoundary;
 };
+
+function jumpToCorrectElementAfterRender(id: string) {
+  requestAnimationFrame(() => (document.location.hash = id));
+}
 
 export default withErrorBoundary(AddRowForm);

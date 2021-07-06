@@ -63,7 +63,17 @@ test("calculates gains from half back-forth purchase", (t) => {
     to: { symbol: "EUR", amount: 1, unitPriceEur: 1 },
   }
   eq(t, toComputedLedger([from, to]), {
-    consumed: { "123": [], "124": [{ ...from, taxableGain: 0.5 }] },
+    consumed: {
+      "123": [],
+      "124": [
+        {
+          ...from,
+          from: { symbol: "EUR", amount: 0.5, unitPriceEur: 1 },
+          to: { amount: 5, symbol: "A", unitPriceEur: 0.1 },
+          taxableGain: 0.5,
+        },
+      ],
+    },
     ledger: [
       { ...from, taxableGain: 0 },
       { ...to, taxableGain: 0.5 },
@@ -149,7 +159,18 @@ test("Reduces all selling fees + partial of purchase fees from gains when sellin
 
   const fees = 0.1 + 0.1 * 0.5
   eq(t, toComputedLedger([from, to]), {
-    consumed: { "123": [], "124": [{ ...from, taxableGain: 0.5 - fees }] },
+    consumed: {
+      "123": [],
+      "124": [
+        {
+          ...from,
+          from: { symbol: "EUR", amount: 0.5, unitPriceEur: 1 },
+          to: { amount: 5, symbol: "A", unitPriceEur: 0.1 },
+          fee: { amount: 0.05, symbol: "EUR", unitPriceEur: 1 },
+          taxableGain: 0.5 - fees,
+        },
+      ],
+    },
     ledger: [
       { ...from, taxableGain: 0 },
       { ...to, taxableGain: 0.5 - fees },
@@ -227,7 +248,13 @@ test("Reduces all selling fees + partial of last purchase fee + all of first pur
       "124": [],
       "125": [
         { ...from1, taxableGain: from1Gains },
-        { ...from2, taxableGain: from2Gains },
+        {
+          ...from2,
+          to: { ...from2.to, amount: 6 },
+          from: { ...from2.from, amount: 12 },
+          fee: { ...from2.fee!, amount: 0.6 },
+          taxableGain: from2Gains,
+        },
       ],
     },
     ledger: [
@@ -274,7 +301,15 @@ test("Does not reduce fees if unitPriceEur is not known", (t) => {
   eq(t, toComputedLedger([from, to1, to2]), {
     consumed: {
       "123": [],
-      "124": [{ ...from, taxableGain: 0.45 }],
+      "124": [
+        {
+          ...from,
+          from: { ...from.from, amount: 0.5 },
+          to: { ...from.to, amount: 5 },
+          fee: { ...from.fee!, amount: 50 },
+          taxableGain: 0.45,
+        },
+      ],
       "125": [{ ...from, taxableGain: 0.45 }],
     },
     ledger: [
