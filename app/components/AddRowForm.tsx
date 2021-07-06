@@ -28,27 +28,12 @@ function AddRowForm({
   const [symbols] = useAtom(availableSymbolsAtom);
   const addAppStateItem = useAppState();
   const onSubmit = useCallback(() => {
-    const filledData =
-      data.from.symbol === "EUR"
-        ? {
-            ...data,
-            to: { ...data.to, unitPriceEur: data.from.amount / data.to.amount },
-          }
-        : data.to.symbol === "EUR"
-        ? {
-            ...data,
-            from: {
-              ...data.from,
-              unitPriceEur: data.to.amount / data.from.amount,
-            },
-          }
-        : data;
     addAppStateItem({
       type: isNew ? "insertRow" : "editRow",
-      data: filledData,
+      data,
     });
     onHide();
-    jumpToCorrectElementAfterRender(filledData.id);
+    jumpToCorrectElementAfterRender(data.id);
   }, [onHide, addAppStateItem, data, isNew]);
 
   return (

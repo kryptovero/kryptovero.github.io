@@ -8,10 +8,15 @@ import s from "../styles/App.module.scss";
 import { useEffect, useState } from "react";
 import EntryRow from "../components/EntryRow";
 import Link from "next/link";
-import { appStateAtom, computedStateAtom } from "../components/app-state";
+import {
+  appStateAtom,
+  computedStateAtom,
+  useAutofillCoinUnitPrices,
+} from "../components/app-state";
 import AddRowForm from "../components/AddRowForm";
 
 export default function App() {
+  useAutofillCoinUnitPrices();
   const [onSave, onAutosave] = useSave();
   const [appState] = useAtom(appStateAtom);
   useEffect(() => {

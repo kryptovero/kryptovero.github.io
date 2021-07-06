@@ -8,8 +8,8 @@ import {
   ComputedLedger,
 } from "@fifo/ledger";
 import { readCsv } from "@fifo/csv-reader";
-import { useCallback } from "react";
-import { getCoins } from "./coinbase";
+import { useCallback, useEffect } from "react";
+import { getCoins, getPriceAt } from "./coinbase";
 
 type ImportAppStateItem = { type: "importCoinbaseCsv"; data: string };
 type DeleteRowAppStateItem = { type: "deleteRow"; rowId: string };
@@ -61,6 +61,46 @@ export const useAppState = () => {
     [setAppStateItems, appStateItems]
   );
   return addAppStateItem;
+};
+
+export const useAutofillCoinUnitPrices = () => {
+  const [{ ledger }] = useAtom(computedStateAtom);
+  const addAppStateItem = useAppState();
+  useEffect(() => {
+    for (const item of ledger) {
+      const fromPrice = item.from.unitPriceEur;
+      const toPrice = item.to.unitPriceEur;
+      if (fromPrice && !toPrice)
+        addAppStateItem({
+          type: "editRow",
+          data: {
+            ...item,
+            to: {
+              ...item.to,
+              unitPriceEur: (fromPrice * item.from.amount) / item.to.amount,
+            },
+          },
+        });
+      else if (toPrice && !fromPrice)
+        addAppStateItem({
+          type: "editRow",
+          data: {
+            ...item,
+            from: {
+              ...item.from,
+              unitPriceEur: (toPrice * item.to.amount) / item.from.amount,
+            },
+          },
+        });
+      else if (!fromPrice && !toPrice)
+        getPriceAt(item.date, item.from.symbol).then((price) =>
+          addAppStateItem({
+            type: "editRow",
+            data: { ...item, from: { ...item.from, unitPriceEur: price } },
+          })
+        );
+    }
+  }, [ledger, addAppStateItem]);
 };
 
 export const availableSymbolsAtom = atom(async () => getCoins());
