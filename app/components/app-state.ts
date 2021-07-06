@@ -14,7 +14,7 @@ import { getCoins, getPriceAt } from "./coinbase";
 type ImportAppStateItem = { type: "importCoinbaseCsv"; data: string };
 type DeleteRowAppStateItem = { type: "deleteRow"; rowId: string };
 type InsertRowAppStateItem = { type: "insertRow"; data: LedgerItem };
-type EditRowAppStateItem = { type: "editRow"; data: LedgerItem };
+type EditRowAppStateItem = { type: "editRow"; data: LedgerItem; note?: string };
 export type AppStateItem =
   | ImportAppStateItem
   | DeleteRowAppStateItem
@@ -80,6 +80,7 @@ export const useAutofillCoinUnitPrices = () => {
               unitPriceEur: (fromPrice * item.from.amount) / item.to.amount,
             },
           },
+          note: "Automatic fill of to unit price",
         });
       else if (toPrice && !fromPrice)
         addAppStateItem({
@@ -91,14 +92,37 @@ export const useAutofillCoinUnitPrices = () => {
               unitPriceEur: (toPrice * item.to.amount) / item.from.amount,
             },
           },
+          note: "Automatic fill of from unit price",
         });
       else if (!fromPrice && !toPrice)
         getPriceAt(item.date, item.from.symbol).then((price) =>
           addAppStateItem({
             type: "editRow",
             data: { ...item, from: { ...item.from, unitPriceEur: price } },
+            note: "Automatic fill of from unit price, fetched from Coinbase",
           })
         );
+
+      if (item.fee && item.fee.symbol !== "EUR") {
+        if (item.fee.symbol === item.from.symbol && item.from.unitPriceEur)
+          addAppStateItem({
+            type: "editRow",
+            data: {
+              ...item,
+              fee: { ...item.fee, unitPriceEur: item.from.unitPriceEur },
+              note: "Automatic fill of fee unit price",
+            },
+          });
+        if (item.fee.symbol === item.to.symbol && item.to.unitPriceEur)
+          addAppStateItem({
+            type: "editRow",
+            data: {
+              ...item,
+              fee: { ...item.fee, unitPriceEur: item.to.unitPriceEur },
+            },
+            note: "Automatic fill of fee unit price",
+          });
+      }
     }
   }, [ledger, addAppStateItem]);
 };
