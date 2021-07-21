@@ -67,6 +67,18 @@ export default function Home() {
             </small>
           </div>
         </div>
+        <div className={`${styles.row} ${styles.videoWrapper}`}>
+          <h2>Katso video:</h2>
+          <iframe
+            width="850"
+            height="478"
+            src="https://www.youtube.com/embed/Ul0pKCoK5Tc"
+            title="YouTube video player"
+            frameBorder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+          ></iframe>
+        </div>
         <div className={`${styles.row} ${styles.thirdRowWrapper}`}>
           <div>
             <h2 className={styles.h1}>Avoin, ilmainen ja turvallinen</h2>
