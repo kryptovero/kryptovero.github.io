@@ -13,7 +13,7 @@ export default function Home() {
               <a className="btn">Aloita käyttö</a>
             </Link>
             <a href="https://github.com/jehna/fifo-fi/graphs/contributors">
-              Tekjät
+              Tekijät
             </a>
             <a href="https://github.com/jehna/fifo-fi/">Lähdekoodi</a>
           </>
