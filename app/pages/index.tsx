@@ -62,7 +62,7 @@ export default function Home() {
               </li>
             </ol>
             <small>
-              <em>*</em> Vain coinbase.com tuettu tällä hektellä. Muiden
+              <em>*</em> Vain pro.coinbase.com tuettu tällä hektellä. Muiden
               pörssien data tulee syöttää käsin.
             </small>
           </div>

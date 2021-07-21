@@ -50,7 +50,9 @@ export default function App() {
               Lisää uusi rivi...
             </button>
             <Link href="/coinbase-import">
-              <a className="btn btn--secondary btn-wider">Tuo Coinbasesta...</a>
+              <a className="btn btn--secondary btn-wider">
+                Tuo Coinbase Pro:sta...
+              </a>
             </Link>
           </div>
           {uniqYears.map((year) => {

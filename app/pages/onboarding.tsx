@@ -25,12 +25,12 @@ export default function Onboarding() {
             router.push("/app");
           }}
         >
-          Aloitetaan hakemalla Coinbasesta<em>*</em> tekemäsi kaupat
+          Aloitetaan hakemalla Coinbase Pro:sta<em>*</em> tekemäsi kaupat
           <ImporterDescription />
         </Importer>
         <Link href="/app">
           <a className="btn btn--secondary">
-            En käytä Coinbasea tai
+            En käytä Coinbase Pro:ta tai
             <br />
             haluan syöttää datan käsin
           </a>

@@ -13,9 +13,9 @@ export default function CoinbaseImport() {
 
   return (
     <>
-      <Header additionalTitle="Import from Coinbase"></Header>
+      <Header additionalTitle="Tuo Coinbase Pro:sta..."></Header>
       <main className={os.centeredContainer}>
-        <h1>Tuo Coinbasesta...</h1>
+        <h1>Tuo Coinbase Pro:sta...</h1>
         <Importer
           accept="text/csv"
           onRead={async (file) => {
@@ -26,7 +26,7 @@ export default function CoinbaseImport() {
             router.push("/app");
           }}
         >
-          Hae Coinbasesta<em>*</em> tekemäsi kaupat
+          Hae Coinbase Pro:sta<em>*</em> tekemäsi kaupat
           <ImporterDescription />
         </Importer>
         <Link href="/app">

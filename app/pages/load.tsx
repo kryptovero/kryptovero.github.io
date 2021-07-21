@@ -14,7 +14,7 @@ export default function CoinbaseImport() {
 
   return (
     <>
-      <Header additionalTitle="Import from Coinbase"></Header>
+      <Header additionalTitle="Jatka siitä mihin jäätiin..."></Header>
       <main className={`${os.centeredContainer} ${s.container}`}>
         <h1>Tervetuloa takaisin!</h1>
         <Importer

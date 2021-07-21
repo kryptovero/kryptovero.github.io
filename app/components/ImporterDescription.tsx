@@ -11,7 +11,7 @@ export default function ImporterDescription() {
             target="_blank"
             rel="noreferrer"
           >
-            Coinbasen raportit -sivu
+            Coinbase Pro:n raportit -sivu
           </a>
           <div className={s.info}>
             Tämä sivu listaa kaikki tekemäsi raportit
@@ -31,8 +31,8 @@ export default function ImporterDescription() {
         </li>
       </ol>
       <small>
-        <em>*</em> Vain coinbase.com tuettu tällä hektellä. Muiden pörssien data
-        tulee syöttää käsin.
+        <em>*</em> Vain pro.coinbase.com tuettu tällä hektellä. Muiden pörssien
+        data tulee syöttää käsin.
       </small>
     </>
   );
