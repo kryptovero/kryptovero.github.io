@@ -49,7 +49,7 @@ export default function Home() {
                 </div>
               </li>
               <li>
-                Lataa ostosten data kryptoveo.fi -työkaluun
+                Lataa ostosten data kryptovero.fi -työkaluun
                 <div className={styles.info}>
                   Voit myös lisätä tekemäsi ostokset käsin
                 </div>
