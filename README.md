@@ -35,12 +35,15 @@ tests when necessary. See `src/` folder for both unit tests and implementation.
 
 ## Features
 
-This project aims to be
-* Zero trust / low trust
-  * User data encrypted by default
-  * Only optional to use direct marketplace APIs, fallback to use .csv imports
-* Free
-* Implement the vero spec as good as possible
+This project
+* Tries to implement the vero.fi specification as good as possible
+* Is zero trust / low trust
+  * User data never leaves user's own machine
+* Is free to use
+  * The easier it is to pay taxes, the more (hopefully) people do and it
+    benefits everyone
+* Has [an extensive test suite for the calculations](./ledger/src/)
+  * All official examples from vero.fi are implemented as tests
 
 ## Contributing
 
