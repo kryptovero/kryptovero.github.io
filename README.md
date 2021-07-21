@@ -33,6 +33,11 @@ yarn test --watch
 This watches all changed files automatically for changes and re-runs appropriate
 tests when necessary. See `src/` folder for both unit tests and implementation.
 
+### Deployment
+
+This project is deployed to Netlify. All pull requests create a new test
+environment and the `master` branch is deployed to production automatically.
+
 ## Features
 
 This project
