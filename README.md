@@ -7,6 +7,12 @@ The rules are quite complex compared to how easy it is to trade coins, so this
 project aims to build an easy-to-use and free tool so you know to pay correct
 amount of taxes.
 
+## Try it out!
+
+The website is live and accessible for free at:
+
+https://kryptovero.fi
+
 ## Getting started
 
 At the moment this project implements the examples from vero.fi as unit tests.
