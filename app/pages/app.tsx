@@ -65,7 +65,7 @@ export default function App() {
             return (
               <Fragment key={year}>
                 <dl className={s.box}>
-                  <dt>Verotettavan tulon märä {year}</dt>
+                  <dt>Verotettavan tulon määrä {year}</dt>
                   <dd>
                     {gains.toLocaleString("fi", { maximumFractionDigits: 2 })} €
                   </dd>
