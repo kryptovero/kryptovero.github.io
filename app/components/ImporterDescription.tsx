@@ -1,4 +1,5 @@
 import s from "../styles/ImporterDescription.module.scss";
+import OnlyCoinbaseSupported from "./OnlyCoinbaseSupported";
 
 export default function ImporterDescription() {
   return (
@@ -30,10 +31,7 @@ export default function ImporterDescription() {
           </div>
         </li>
       </ol>
-      <small>
-        <em>*</em> Vain pro.coinbase.com tuettu tällä hektellä. Muiden pörssien
-        data tulee syöttää käsin.
-      </small>
+      <OnlyCoinbaseSupported />
     </>
   );
 }
