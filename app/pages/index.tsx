@@ -2,6 +2,7 @@ import Header from "../components/Header";
 import heroImage from "../public/hero.svg";
 import styles from "../styles/Home.module.scss";
 import Link from "next/link";
+import OnlyCoinbaseSupported from "../components/OnlyCoinbaseSupported";
 
 export default function Home() {
   return (
@@ -61,10 +62,7 @@ export default function Home() {
                 </div>
               </li>
             </ol>
-            <small>
-              <em>*</em> Vain pro.coinbase.com tuettu tällä hektellä. Muiden
-              pörssien data tulee syöttää käsin.
-            </small>
+            <OnlyCoinbaseSupported />
           </div>
         </div>
         <div className={`${styles.row} ${styles.videoWrapper}`}>
