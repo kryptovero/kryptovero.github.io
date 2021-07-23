@@ -14,10 +14,11 @@ export default function readKrakenCsv(input: string): Ledger {
 type KrakenLedgerItemType = "buy" | "sell"
 // Kraken pairs
 type KrakenFiat = `Z${KrakenFiats}`
-type KrakenCrypto = `X${KrakenCryptos}`
 type KrakenPair =
-  | `${KrakenCrypto}${KrakenFiat}`
-  | `${KrakenFiat}${KrakenCrypto}`
+  | `${KrakenCryptos}${KrakenFiat}`
+  | `${KrakenFiat}${KrakenCryptos}`
+
+const pair: KrakenPair = "XETH"
 interface KrakenLedgerItem {
   txId: string
   orderTxId: string
