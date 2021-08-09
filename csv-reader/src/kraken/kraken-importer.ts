@@ -1,14 +1,21 @@
 import { Temporal } from "proposal-temporal"
 import { Ledger, LedgerItem } from "@fifo/ledger"
-import { KrakenCryptos, KrakenFiats } from "./types"
+import {
+  KrakenCryptos,
+  KrakenCryptosArr,
+  KrakenFiats,
+  KrakenFiatsArr,
+} from "./types"
 
 export default function readKrakenCsv(input: string): Ledger {
-  return input
+  const ledger = input
     .split("\n")
     .slice(1)
     .filter((row) => row.trim())
     .map(parseRow)
     .map(parseKrakenToLedgerItem)
+  console.log(ledger)
+  return ledger
 }
 
 type KrakenLedgerItemType = "buy" | "sell"
@@ -18,7 +25,6 @@ type KrakenPair =
   | `${KrakenCryptos}${KrakenFiat}`
   | `${KrakenFiat}${KrakenCryptos}`
 
-const pair: KrakenPair = "XETH"
 interface KrakenLedgerItem {
   txId: string
   orderTxId: string
@@ -67,6 +73,38 @@ const parseRow = (strRow: string) => {
 
 // Still working on it
 //@ts-ignore
-const parseKrakenToLedgerItem = (item: KrakenLedgerItem): LedgerItem => {
+export const parseKrakenToLedgerItem = (item: KrakenLedgerItem): LedgerItem => {
+  console.log("TIME: ", item.time)
   //TODO: Find & parse Kraken pair from string
+  const combined = [...KrakenCryptosArr, ...KrakenFiatsArr]
+  const left = combined.find((e) => item.pair.startsWith(e))
+  const right = combined.find((e) => item.pair.endsWith(e))
+
+  // Determine asset type for pair sides
+  const from = {
+    symbol: left as string,
+    // If the from asset is fiat, use cost.
+    amount: KrakenFiatsArr.includes(left as KrakenFiats)
+      ? item.cost
+      : item.volume,
+    unitPriceEur: KrakenFiatsArr.includes(left as KrakenFiats)
+      ? undefined
+      : item.cost,
+  }
+  const to = {
+    symbol: right as string,
+    amount: KrakenFiatsArr.includes(right as KrakenFiats)
+      ? item.cost
+      : item.volume,
+    unitPriceEur: KrakenFiatsArr.includes(right as KrakenFiats)
+      ? undefined
+      : item.cost,
+  }
+  // Inefficient permutation search
+  return {
+    from,
+    to,
+    date: item.time,
+    id: item.txId,
+  }
 }
