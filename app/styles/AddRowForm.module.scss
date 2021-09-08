@@ -1,3 +1,5 @@
+@use "sass:math";
+
 .overlayBg {
   animation: backdrop 0.5s forwards;
   position: fixed;
@@ -23,7 +25,7 @@
   $width: 620px;
   position: fixed;
   top: 25vh;
-  left: calc(50% - #{$width / 2});
+  left: calc(50% - #{math.div($width, 2)});
   width: $width;
   margin: auto;
   background: rgba(255, 255, 255, 0.8);
