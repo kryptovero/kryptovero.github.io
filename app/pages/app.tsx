@@ -13,7 +13,9 @@ import {
   computedLedgerSelector,
   eventsSelector,
   useAppSelector,
+  isPrefillingSelector,
 } from "../components/store";
+import Loading from "../components/Loading";
 
 export default function App() {
   usePreventUserLeaving();
@@ -27,6 +29,7 @@ export default function App() {
     new Set(ledger.map((item) => item.date.year))
   ).sort((a, b) => b - a);
   const [showEditRow, setShowEditRow] = useState<string | null>(null);
+  const isPrefilling = useAppSelector(isPrefillingSelector);
 
   return (
     <>
@@ -51,6 +54,7 @@ export default function App() {
                 Tuo Coinbase Pro:sta...
               </a>
             </Link>
+            {isPrefilling && <Loading />}
           </div>
           {uniqYears.map((year) => {
             const gains = calculateGains(

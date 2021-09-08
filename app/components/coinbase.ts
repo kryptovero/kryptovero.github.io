@@ -11,8 +11,10 @@ export const getPriceAt = async (date: Temporal.PlainDate, symbol: string) => {
         calendarName: "never",
       })}Z00:00:00.00&granularity=86400`
   ).then((res) => res.json());
-  const open = result?.[0]?.[3] ?? 1;
-  const close = result?.[0]?.[4] ?? 1;
+  const first = result?.[0];
+  if (!first) throw new Error("No result");
+  const open = first[3];
+  const close = first[4];
   return (open + close) / 2;
 };
 

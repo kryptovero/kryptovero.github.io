@@ -1,0 +1,30 @@
+.loading {
+  width: 200px;
+  height: 10px;
+  align-self: center;
+  border-radius: 5px;
+  border: 1px solid #00b51f;
+  overflow: hidden;
+  position: relative;
+
+  &::after {
+    content: "";
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: #00b51f;
+    animation: load 10s cubic-bezier(0, 0.5, 0, 1);
+  }
+}
+
+@keyframes load {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: 0;
+  }
+}

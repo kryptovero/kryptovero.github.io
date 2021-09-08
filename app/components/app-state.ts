@@ -1,8 +1,16 @@
 import { Ledger, LedgerItem, sortLedger } from "@fifo/ledger";
 import { readCsv } from "@fifo/csv-reader";
 import { useEffect } from "react";
+import { Temporal } from "proposal-temporal";
 
-type ImportAppStateItem = { type: "importCoinbaseCsv"; data: string };
+export const toCacheKey = (symbol: string, date: Temporal.PlainDate) =>
+  [symbol, date.toString({ calendarName: "never" })].join("-");
+type PrefilledEurValues = { [symbolDateKey: string]: number };
+type ImportAppStateItem = {
+  type: "importCoinbaseCsv";
+  data: string;
+  prefilledEurValues: PrefilledEurValues;
+};
 type DeleteRowAppStateItem = { type: "deleteRow"; rowId: string };
 type InsertRowAppStateItem = { type: "insertRow"; data: LedgerItem };
 type EditRowAppStateItem = { type: "editRow"; data: LedgerItem; note?: string };
@@ -16,11 +24,34 @@ export type AppState = { version: 0; items: AppStateItem[] };
 const uniqByIdFilter = ({ id }: LedgerItem, index: number, ledger: Ledger) =>
   ledger.findIndex((item) => item.id === id) === index;
 
+const applyPrefilledValues = (
+  ledger: Ledger,
+  prefilledEurValues: PrefilledEurValues
+): Ledger =>
+  ledger.map((ledgerItem) => ({
+    ...ledgerItem,
+    from: {
+      ...ledgerItem.from,
+      unitPriceEur:
+        ledgerItem.from.unitPriceEur ??
+        prefilledEurValues[toCacheKey(ledgerItem.from.symbol, ledgerItem.date)],
+    },
+    to: {
+      ...ledgerItem.to,
+      unitPriceEur:
+        ledgerItem.to.unitPriceEur ??
+        prefilledEurValues[toCacheKey(ledgerItem.to.symbol, ledgerItem.date)],
+    },
+  }));
+
 export const applyLedgerItem = (ledger: Ledger, next: AppStateItem) => {
   switch (next.type) {
     case "importCoinbaseCsv":
       return sortLedger(
-        [...readCsv(next.data), ...ledger].filter(uniqByIdFilter)
+        [
+          ...applyPrefilledValues(readCsv(next.data), next.prefilledEurValues),
+          ...ledger,
+        ].filter(uniqByIdFilter)
       );
     case "deleteRow":
       return ledger.filter((item) => item.id !== next.rowId);
