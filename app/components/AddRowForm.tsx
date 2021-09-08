@@ -1,9 +1,9 @@
-import React, { Suspense, useCallback, useState } from "react";
+import React, { Suspense, useCallback, useEffect, useState } from "react";
 import { Ledger } from "@fifo/ledger";
 import { Temporal } from "proposal-temporal";
 import s from "../styles/AddRowForm.module.scss";
-import { useAtom } from "jotai";
-import { availableSymbolsAtom, useAppState } from "./app-state";
+import { insertEvent, useAppDispatch } from "./store";
+import { useCoinSymbolsQuery } from "./coinbase";
 
 const DEFAULT_ITEM = {
   date: Temporal.now.plainDate("iso8601"),
@@ -26,16 +26,25 @@ function AddRowForm({
   );
   const fee = data.fee ?? DEFAULT_ITEM.fee;
   const isNew = !ledger.some((item) => item.id === id);
-  const [symbols] = useAtom(availableSymbolsAtom);
-  const addAppStateItem = useAppState();
+  const symbols = useCoinSymbolsQuery(undefined);
+  const dispatch = useAppDispatch();
   const onSubmit = useCallback(() => {
-    addAppStateItem({
-      type: isNew ? "insertRow" : "editRow",
-      data,
-    });
+    dispatch(
+      insertEvent({
+        type: isNew ? "insertRow" : "editRow",
+        data,
+      })
+    );
     onHide();
     jumpToCorrectElementAfterRender(data.id);
-  }, [onHide, addAppStateItem, data, isNew]);
+  }, [onHide, dispatch, data, isNew]);
+
+  useEffect(() => {
+    if (symbols.isError) onHide();
+  }, [symbols.isError, onHide]);
+
+  if (symbols.isLoading) return <div className={s.overlayBg} />;
+  if (symbols.isError) return <div className={s.overlayBg} />;
 
   return (
     <>
@@ -105,7 +114,7 @@ function AddRowForm({
                   })
                 }
               >
-                {symbols.map((symbol) => (
+                {symbols.data?.map((symbol) => (
                   <option key={symbol} value={symbol}>
                     {symbol}
                   </option>
@@ -151,7 +160,7 @@ function AddRowForm({
                   })
                 }
               >
-                {symbols.map((symbol) => (
+                {symbols.data?.map((symbol) => (
                   <option key={symbol} value={symbol}>
                     {symbol}
                   </option>
@@ -197,7 +206,7 @@ function AddRowForm({
                   })
                 }
               >
-                {symbols.map((symbol) => (
+                {symbols.data?.map((symbol) => (
                   <option key={symbol} value={symbol}>
                     {symbol}
                   </option>

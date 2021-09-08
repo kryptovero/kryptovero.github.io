@@ -1,4 +1,5 @@
 import { Temporal } from "proposal-temporal";
+import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
 export const getPriceAt = async (date: Temporal.PlainDate, symbol: string) => {
   const result = await fetch(
@@ -16,18 +17,26 @@ export const getPriceAt = async (date: Temporal.PlainDate, symbol: string) => {
 };
 
 type ProductResponse = { quote_currency: string; base_currency: string }[];
-export const getCoins = async () => {
-  const result = await fetch(`https://api.pro.coinbase.com/products`).then(
-    (res) => res.json() as Promise<ProductResponse>
-  );
-  return Array.from(
-    new Set(
-      result
-        .flatMap(({ base_currency, quote_currency }) => [
-          base_currency,
-          quote_currency,
-        ])
-        .sort()
-    )
-  );
-};
+export const coinbaseApi = createApi({
+  reducerPath: "coinsApi",
+  baseQuery: fetchBaseQuery({
+    baseUrl: "https://api.pro.coinbase.com/",
+  }),
+  endpoints: (builder) => ({
+    coinSymbols: builder.query({
+      query: () => "products",
+      transformResponse: (response: ProductResponse) =>
+        Array.from(
+          new Set(
+            response
+              .flatMap(({ base_currency, quote_currency }) => [
+                base_currency,
+                quote_currency,
+              ])
+              .sort()
+          )
+        ),
+    }),
+  }),
+});
+export const { useCoinSymbolsQuery } = coinbaseApi;

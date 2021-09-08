@@ -4,11 +4,11 @@ import ImporterDescription from "../components/ImporterDescription";
 import s from "../styles/CoinbaseImport.module.scss";
 import os from "../styles/Onboarding.module.scss";
 import Link from "next/link";
-import { useAppState } from "../components/app-state";
 import { useRouter } from "next/router";
+import { insertEvent, useAppDispatch } from "../components/store";
 
 export default function CoinbaseImport() {
-  const addAppStateItem = useAppState();
+  const dispatch = useAppDispatch();
   const router = useRouter();
 
   return (
@@ -19,10 +19,12 @@ export default function CoinbaseImport() {
         <Importer
           accept="text/csv"
           onRead={async (file) => {
-            addAppStateItem({
-              type: "importCoinbaseCsv",
-              data: await file.text(),
-            });
+            dispatch(
+              insertEvent({
+                type: "importCoinbaseCsv",
+                data: await file.text(),
+              })
+            );
             router.push("/app");
           }}
         >

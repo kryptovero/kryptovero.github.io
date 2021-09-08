@@ -1,15 +1,6 @@
-import { atom, useAtom } from "jotai";
-import { focusAtom } from "jotai/optics";
-import {
-  Ledger,
-  LedgerItem,
-  sortLedger,
-  toComputedLedger,
-  ComputedLedger,
-} from "@fifo/ledger";
+import { Ledger, LedgerItem, sortLedger } from "@fifo/ledger";
 import { readCsv } from "@fifo/csv-reader";
-import { useCallback, useEffect } from "react";
-import { getCoins, getPriceAt } from "./coinbase";
+import { useEffect } from "react";
 
 type ImportAppStateItem = { type: "importCoinbaseCsv"; data: string };
 type DeleteRowAppStateItem = { type: "deleteRow"; rowId: string };
@@ -25,7 +16,7 @@ export type AppState = { version: 0; items: AppStateItem[] };
 const uniqByIdFilter = ({ id }: LedgerItem, index: number, ledger: Ledger) =>
   ledger.findIndex((item) => item.id === id) === index;
 
-const applyLedgerItem = (ledger: Ledger, next: AppStateItem) => {
+export const applyLedgerItem = (ledger: Ledger, next: AppStateItem) => {
   switch (next.type) {
     case "importCoinbaseCsv":
       return sortLedger(
@@ -44,25 +35,7 @@ const applyLedgerItem = (ledger: Ledger, next: AppStateItem) => {
   }
 };
 
-export const appStateAtom = atom<AppState>({ version: 0, items: [] });
-export const computedStateAtom = atom<ComputedLedger>((get) =>
-  toComputedLedger(get(appStateItemsAtom).reduce<Ledger>(applyLedgerItem, []))
-);
-
-const appStateItemsAtom = focusAtom(appStateAtom, (optic) =>
-  optic.prop("items")
-);
-export const useAppState = () => {
-  const [appStateItems, setAppStateItems] = useAtom(appStateItemsAtom);
-  const addAppStateItem = useCallback(
-    (newItem: AppStateItem) => {
-      setAppStateItems([...appStateItems, newItem]);
-    },
-    [setAppStateItems, appStateItems]
-  );
-  return addAppStateItem;
-};
-
+/*
 export const useAutofillCoinUnitPrices = () => {
   const [{ ledger }] = useAtom(computedStateAtom);
   const addAppStateItem = useAppState();
@@ -125,9 +98,7 @@ export const useAutofillCoinUnitPrices = () => {
       }
     }
   }, [ledger, addAppStateItem]);
-};
-
-export const availableSymbolsAtom = atom(async () => getCoins());
+};*/
 
 export const usePreventUserLeaving = () => {
   useEffect(() => {
