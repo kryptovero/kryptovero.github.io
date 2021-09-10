@@ -6,11 +6,21 @@ import {
 } from "@reduxjs/toolkit";
 import { takeEvery, call, put } from "redux-saga/effects";
 import createSagaMiddleware from "redux-saga";
-import { LedgerItem, toComputedLedger } from "@fifo/ledger";
+import { toComputedLedger } from "@fifo/ledger";
 import { TypedUseSelectorHook, useDispatch, useSelector } from "react-redux";
 import { applyLedgerItem, AppStateItem, toCacheKey } from "./app-state";
 import { coinbaseApi, getPriceAt } from "./coinbase";
 import { readCsv } from "@fifo/csv-reader";
+
+const sanityCheckComputedLedgerBeforeInsert = (events: AppStateItem[]) => {
+  try {
+    toComputedLedger(events.reduce(applyLedgerItem, []));
+    return true;
+  } catch (e) {
+    alert(e.message);
+    return false;
+  }
+};
 
 const sagaMiddleware = createSagaMiddleware();
 
@@ -20,7 +30,8 @@ const eventsSlice = createSlice({
   name: "events",
   reducers: {
     insert: (state, action: PayloadAction<AppStateItem>) => {
-      state.push(action.payload);
+      if (sanityCheckComputedLedgerBeforeInsert([...state, action.payload]))
+        state.push(action.payload);
     },
   },
 });

@@ -113,13 +113,18 @@ const compute = (
     }
   }
 
-  if (remaining) {
-    newFrom.push({
-      amount: -remaining,
-      purchaseDate: ledgerItem.date,
-      unitPriceEur: ledgerItem.from.unitPriceEur!,
-      item: ledgerItem,
-    })
+  if (remaining && ledgerItem.from.symbol !== "EUR") {
+    throw new Error(
+      `There's not enough ${
+        ledgerItem.from.symbol
+      } at ${ledgerItem.date.toString()}: You're trying to convert ${
+        ledgerItem.from.amount
+      } ${ledgerItem.from.symbol} to ${ledgerItem.to.amount} ${
+        ledgerItem.to.symbol
+      }, but you had only ${ledgerItem.from.amount - remaining} ${
+        ledgerItem.from.symbol
+      }. Please make sure you have full history of transactions up until ${ledgerItem.date.toString()} before trying again.`
+    )
   }
 
   const toUnitPriceEur = calculateToUnitPrice(ledgerItem, purchaseSumEur)

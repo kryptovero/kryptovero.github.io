@@ -1,6 +1,6 @@
 import test from "ava"
 import { Temporal } from "proposal-temporal"
-import { LedgerItem } from "."
+import { Ledger, LedgerItem } from "."
 import { eq } from "./testutils"
 import { toComputedLedger } from "./to-computed-ledger"
 
@@ -321,4 +321,23 @@ test("Does not reduce fees if unitPriceEur is not known", (t) => {
       A: [],
     },
   })
+})
+
+test("Throws an error if trying to sell nonexisting coins", (t) => {
+  const ledger: Ledger = [
+    {
+      id: "123",
+      date: Temporal.PlainDate.from("2020-01-01"),
+      from: { symbol: "EUR", amount: 1, unitPriceEur: 1 },
+      to: { symbol: "A", amount: 10 },
+    },
+    {
+      id: "124",
+      date: Temporal.PlainDate.from("2020-01-02"),
+      from: { symbol: "A", amount: 20 },
+      to: { symbol: "EUR", amount: 100, unitPriceEur: 1 },
+    },
+  ]
+
+  t.throws(() => toComputedLedger(ledger))
 })
