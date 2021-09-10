@@ -1,13 +1,13 @@
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useAppState } from "../components/app-state";
 import Header from "../components/Header";
 import Importer from "../components/Importer";
 import ImporterDescription from "../components/ImporterDescription";
+import { insertEvent, useAppDispatch } from "../components/store";
 import s from "../styles/Onboarding.module.scss";
 
 export default function Onboarding() {
-  const addAppStateItem = useAppState();
+  const dispatch = useAppDispatch();
   const router = useRouter();
 
   return (
@@ -18,10 +18,12 @@ export default function Onboarding() {
         <Importer
           accept="text/csv"
           onRead={async (file) => {
-            addAppStateItem({
-              type: "importCoinbaseCsv",
-              data: await file.text(),
-            });
+            dispatch(
+              insertEvent({
+                type: "importCoinbaseCsv",
+                data: await file.text(),
+              })
+            );
             router.push("/app");
           }}
         >

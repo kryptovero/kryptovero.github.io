@@ -1,15 +1,47 @@
-import React, { Suspense, useCallback, useState } from "react";
-import { Ledger } from "@fifo/ledger";
+import React, {
+  FormEvent,
+  Suspense,
+  useCallback,
+  useEffect,
+  useState,
+} from "react";
+import { Ledger, LedgerItem } from "@fifo/ledger";
 import { Temporal } from "proposal-temporal";
 import s from "../styles/AddRowForm.module.scss";
-import { useAtom } from "jotai";
-import { availableSymbolsAtom, useAppState } from "./app-state";
+import { insertEvent, useAppDispatch } from "./store";
+import { getPriceAt, useCoinSymbolsQuery } from "./coinbase";
 
 const DEFAULT_ITEM = {
   date: Temporal.now.plainDate("iso8601"),
   from: { amount: 1000, symbol: "EUR" },
   to: { amount: 1, symbol: "BTC" },
   fee: { amount: 0, symbol: "EUR", unitPriceEur: 1 },
+};
+
+const autoFillUniPriceIfMissing = async (ledgerItem: LedgerItem) => {
+  if (ledgerItem.from.unitPriceEur ?? ledgerItem.to.unitPriceEur !== undefined)
+    return ledgerItem;
+
+  try {
+    return {
+      ...ledgerItem,
+      from: {
+        ...ledgerItem.from,
+        unitPriceEur: await getPriceAt(ledgerItem.date, ledgerItem.from.symbol),
+      },
+    };
+  } catch (e) {
+    try {
+      return {
+        ...ledgerItem,
+        to: {
+          ...ledgerItem.to,
+          unitPriceEur: await getPriceAt(ledgerItem.date, ledgerItem.to.symbol),
+        },
+      };
+    } catch (e) {}
+  }
+  return ledgerItem;
 };
 
 function AddRowForm({
@@ -26,16 +58,31 @@ function AddRowForm({
   );
   const fee = data.fee ?? DEFAULT_ITEM.fee;
   const isNew = !ledger.some((item) => item.id === id);
-  const [symbols] = useAtom(availableSymbolsAtom);
-  const addAppStateItem = useAppState();
-  const onSubmit = useCallback(() => {
-    addAppStateItem({
-      type: isNew ? "insertRow" : "editRow",
-      data,
-    });
-    onHide();
-    jumpToCorrectElementAfterRender(data.id);
-  }, [onHide, addAppStateItem, data, isNew]);
+  const symbols = useCoinSymbolsQuery(undefined);
+  const [submitting, setSubmitting] = useState(false);
+  const dispatch = useAppDispatch();
+  const onSubmit = useCallback(
+    async (e: FormEvent) => {
+      e.preventDefault();
+      setSubmitting(true);
+      dispatch(
+        insertEvent({
+          type: isNew ? "insertRow" : "editRow",
+          data: await autoFillUniPriceIfMissing(data),
+        })
+      );
+      onHide();
+      jumpToCorrectElementAfterRender(data.id);
+    },
+    [onHide, dispatch, data, isNew]
+  );
+
+  useEffect(() => {
+    if (symbols.isError) onHide();
+  }, [symbols.isError, onHide]);
+
+  if (symbols.isLoading) return <div className={s.overlayBg} />;
+  if (symbols.isError) return <div className={s.overlayBg} />;
 
   return (
     <>
@@ -105,7 +152,7 @@ function AddRowForm({
                   })
                 }
               >
-                {symbols.map((symbol) => (
+                {symbols.data?.map((symbol) => (
                   <option key={symbol} value={symbol}>
                     {symbol}
                   </option>
@@ -151,7 +198,7 @@ function AddRowForm({
                   })
                 }
               >
-                {symbols.map((symbol) => (
+                {symbols.data?.map((symbol) => (
                   <option key={symbol} value={symbol}>
                     {symbol}
                   </option>
@@ -197,7 +244,7 @@ function AddRowForm({
                   })
                 }
               >
-                {symbols.map((symbol) => (
+                {symbols.data?.map((symbol) => (
                   <option key={symbol} value={symbol}>
                     {symbol}
                   </option>
@@ -206,7 +253,7 @@ function AddRowForm({
             </div>
           </label>
           <div className={s.overlayButtons}>
-            <button type="submit" className="btn">
+            <button type="submit" className="btn" disabled={submitting}>
               {isNew ? "Lisää" : "Muokkaa"}
             </button>
           </div>

@@ -5,11 +5,12 @@ import s from "../styles/Load.module.scss";
 import os from "../styles/Onboarding.module.scss";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useAtom } from "jotai";
-import { appStateAtom } from "../components/app-state";
+import { useDispatch } from "react-redux";
+import { AppStateItem } from "../components/app-state";
+import { insertEvent } from "../components/store";
 
 export default function CoinbaseImport() {
-  const [_appState, setAppState] = useAtom(appStateAtom);
+  const dispatch = useDispatch();
   const router = useRouter();
 
   return (
@@ -21,7 +22,11 @@ export default function CoinbaseImport() {
           accept="application/kryptovero.fi"
           onRead={async (file) => {
             // Todo: Handle autosave
-            setAppState(JSON.parse(await file.text(), reviveDates));
+            const { items } = JSON.parse(await file.text(), reviveDates) as {
+              version: 0;
+              items: AppStateItem[];
+            };
+            items.forEach((item) => dispatch(insertEvent(item)));
             router.push("/app");
           }}
         >

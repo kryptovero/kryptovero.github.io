@@ -1,7 +1,7 @@
 import s from "../styles/EntryRow.module.scss";
 import { useState } from "react";
 import { ComputedLedgerItem } from "@fifo/ledger";
-import { useAppState } from "./app-state";
+import { insertEvent, useAppDispatch } from "./store";
 
 export default function EntryRow({
   item,
@@ -13,7 +13,7 @@ export default function EntryRow({
   onEdit?: (id: string) => void;
 }) {
   const [open, setOpen] = useState(false);
-  const addAppStateItem = useAppState();
+  const dispatch = useAppDispatch();
 
   return (
     <div className={`${s.entryrow} ${open ? "" : s.showLess}`} id={item.id}>
@@ -64,7 +64,9 @@ export default function EntryRow({
       <button
         type="button"
         className={`btn btn--secondary ${s.deleteButton}`}
-        onClick={() => addAppStateItem({ type: "deleteRow", rowId: item.id })}
+        onClick={() =>
+          dispatch(insertEvent({ type: "deleteRow", rowId: item.id }))
+        }
       >
         <img src="/delete.svg" alt="Delete" />
       </button>

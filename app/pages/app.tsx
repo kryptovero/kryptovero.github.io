@@ -1,4 +1,3 @@
-import { useAtom } from "jotai";
 import { v4 as uuid } from "uuid";
 import { calculateGains } from "@fifo/ledger";
 import { Temporal } from "proposal-temporal";
@@ -8,28 +7,29 @@ import s from "../styles/App.module.scss";
 import { useEffect, useState, Fragment } from "react";
 import EntryRow from "../components/EntryRow";
 import Link from "next/link";
-import {
-  appStateAtom,
-  computedStateAtom,
-  useAutofillCoinUnitPrices,
-  usePreventUserLeaving,
-} from "../components/app-state";
+import { usePreventUserLeaving } from "../components/app-state";
 import AddRowForm from "../components/AddRowForm";
+import {
+  computedLedgerSelector,
+  eventsSelector,
+  useAppSelector,
+  isPrefillingSelector,
+} from "../components/store";
+import Loading from "../components/Loading";
 
 export default function App() {
-  useAutofillCoinUnitPrices();
   usePreventUserLeaving();
-  const [appState] = useAtom(appStateAtom);
+  const appState = useAppSelector(eventsSelector);
   const [onSave, onAutosave] = useSave();
   useEffect(() => {
     onAutosave(appState);
   }, [appState, onAutosave]);
-  const [{ ledger, consumed }] = useAtom(computedStateAtom);
+  const { ledger, consumed } = useAppSelector(computedLedgerSelector);
   const uniqYears = Array.from(
     new Set(ledger.map((item) => item.date.year))
   ).sort((a, b) => b - a);
   const [showEditRow, setShowEditRow] = useState<string | null>(null);
-  console.log(ledger);
+  const isPrefilling = useAppSelector(isPrefillingSelector);
 
   return (
     <>
@@ -54,6 +54,7 @@ export default function App() {
                 Tuo Coinbase Pro:sta...
               </a>
             </Link>
+            {isPrefilling && <Loading />}
           </div>
           {uniqYears.map((year) => {
             const gains = calculateGains(
