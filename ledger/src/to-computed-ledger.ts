@@ -1,6 +1,10 @@
 import { Temporal } from "proposal-temporal"
 import { calculateTax, Coin, Ledger, LedgerItem, sortLedger, TaxInfo } from "."
 
+// TODO: Calculations should be only done with proper Decimals instead of floating points.
+// Most coins use up to 8 decimals of precision.
+const ZERO_WITH_WIGGLE_SPACE = 1e-9
+
 export type ComputedLedgerItem = LedgerItem & {
   taxableGain: number
 }
@@ -113,7 +117,7 @@ const compute = (
     }
   }
 
-  if (remaining && ledgerItem.from.symbol !== "EUR") {
+  if (remaining > ZERO_WITH_WIGGLE_SPACE && ledgerItem.from.symbol !== "EUR") {
     throw new Error(
       `There's not enough ${
         ledgerItem.from.symbol
