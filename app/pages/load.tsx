@@ -8,6 +8,7 @@ import { useRouter } from "next/router";
 import { useDispatch } from "react-redux";
 import { AppStateItem } from "../components/app-state";
 import { insertEvent } from "../components/store";
+import { SaveData } from "../components/use-save";
 
 export default function CoinbaseImport() {
   const dispatch = useDispatch();
@@ -22,10 +23,11 @@ export default function CoinbaseImport() {
           accept="application/kryptovero.fi"
           onRead={async (file) => {
             // Todo: Handle autosave
-            const { items } = JSON.parse(await file.text(), reviveDates) as {
-              version: 0;
-              items: AppStateItem[];
-            };
+            // Todo: Use parser like io-ts
+            const { items } = JSON.parse(
+              await file.text(),
+              reviveDates
+            ) as SaveData;
             items.forEach((item) => dispatch(insertEvent(item)));
             router.push("/app");
           }}

@@ -1,22 +1,29 @@
 import { useCallback, useRef } from "react";
+import { AppStateItem } from "./app-state";
+
+export type SaveData = {
+  version: 0;
+  items: AppStateItem[];
+};
 
 export function useSave() {
   const handle = useRef<FileSystemFileHandle>();
 
-  const onAutosave = useCallback(async (data: any) => {
+  const onAutosave = useCallback(async (appState: AppStateItem[]) => {
     if (!handle.current) return;
+    const data = { version: 0, items: appState };
     const writableStream = await handle.current.createWritable();
     await writableStream.write(JSON.stringify(data));
     await writableStream.close();
   }, []);
 
   const onSave = useCallback(
-    async (data: any) => {
+    async (appState: AppStateItem[]) => {
       if (!handle.current) handle.current = await getFileHandle();
       if (handle.current) {
-        await onAutosave(data);
+        await onAutosave(appState);
       } else {
-        fallbackDownload(data);
+        fallbackDownload(appState);
       }
     },
     [onAutosave]
@@ -42,7 +49,8 @@ async function getFileHandle() {
   }
 }
 
-function fallbackDownload(data: any) {
+function fallbackDownload(appState: AppStateItem[]) {
+  const data: SaveData = { version: 0, items: appState };
   const file = new Blob([JSON.stringify(data)], {
     type: "application/kryptovero.fi",
   });
