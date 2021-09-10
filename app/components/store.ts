@@ -90,6 +90,11 @@ function* autoFillCoinUnitPrices(action: PayloadAction<AppStateItem>) {
     const fromKey = toCacheKey(ledgerItem.from.symbol, ledgerItem.date);
     const toKey = toCacheKey(ledgerItem.to.symbol, ledgerItem.date);
     if (fromKey in prefilledEurValues || toKey in prefilledEurValues) continue;
+    if (
+      ledgerItem.from.unitPriceEur ??
+      ledgerItem.to.unitPriceEur !== undefined
+    )
+      continue;
 
     try {
       const filledFrom = yield call(
