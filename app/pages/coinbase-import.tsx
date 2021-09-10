@@ -23,6 +23,7 @@ export default function CoinbaseImport() {
               insertEvent({
                 type: "importCoinbaseCsv",
                 data: await file.text(),
+                prefilledEurValues: {},
               })
             );
             router.push("/app");

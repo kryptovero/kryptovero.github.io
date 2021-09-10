@@ -22,6 +22,7 @@ export default function Onboarding() {
               insertEvent({
                 type: "importCoinbaseCsv",
                 data: await file.text(),
+                prefilledEurValues: {},
               })
             );
             router.push("/app");

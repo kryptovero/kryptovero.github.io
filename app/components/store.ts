@@ -74,7 +74,7 @@ function* autoFillCoinUnitPrices(action: PayloadAction<AppStateItem>) {
 
   yield put(isPrefillingSlice.actions.setIsPrefilling());
   const ledgerItems = readCsv(event.data);
-  const prefilledEurValues = {};
+  const prefilledEurValues = event.prefilledEurValues;
   for (const ledgerItem of ledgerItems) {
     const fromKey = toCacheKey(ledgerItem.from.symbol, ledgerItem.date);
     const toKey = toCacheKey(ledgerItem.to.symbol, ledgerItem.date);
