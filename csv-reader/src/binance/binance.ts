@@ -10,7 +10,7 @@ const COLUMN_DELIMITER = ";"
 
 export function readTradeCsv(input: string): Ledger {
   return input
-    .split("\r\n")
+    .split(input.includes("\r\n") ? "\r\n" : "\n")
     .slice(1)
     .filter((row) => row.trim())
     .map((row) => parseTradeRow(row.split(COLUMN_DELIMITER)))
@@ -44,7 +44,7 @@ export function readTradeCsv(input: string): Ledger {
 
 export function readBuySellCsv(input: string): Ledger {
   return input
-    .split("\r\n")
+    .split(input.includes("\r\n") ? "\r\n" : "\n")
     .slice(1)
     .filter((row) => row.trim())
     .map((row) => parseBuySellRow(row.split(COLUMN_DELIMITER)))
