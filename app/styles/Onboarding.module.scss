@@ -18,3 +18,31 @@
     font-size: 18px;
   }
 }
+
+.importLocationContainer {
+  display: flex;
+  flex-direction: column;
+}
+
+.importLocationList {
+  display: flex;
+  flex-direction: row;
+  column-gap: 8px;
+}
+
+.importLocation {
+  border: 1px solid;
+  border-radius: 20px;
+  height: 130px;
+  padding: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: "center";
+  &:hover {
+    cursor: pointer;
+  }
+}
+
+.disabledLocation {
+  opacity: 0.2;
+}
