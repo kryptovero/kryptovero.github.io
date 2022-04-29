@@ -1,4 +1,4 @@
-import { Temporal } from "proposal-temporal"
+import addYears from "date-fns/addYears"
 import { toComputedLedger } from "./to-computed-ledger"
 export {
   toComputedLedger,
@@ -9,7 +9,7 @@ export {
 export type Coin = { unitPriceEur?: number; symbol: string; amount: number }
 
 export type LedgerItem = {
-  date: Temporal.PlainDate
+  timestamp: number
   from: Coin
   to: Coin
   fee?: Coin
@@ -21,15 +21,15 @@ export type Ledger = LedgerItem[]
 export type TaxInfo = {
   fromEur: number
   toEur: number
-  fromDate: Temporal.PlainDate
-  toDate: Temporal.PlainDate
+  fromTimestamp: number
+  toTimestamp: number
   fromFeesEur: number
   toFeesEur: number
 }
 
 type LedgerSnapshotItem = {
   amount: number
-  purchaseDate: Temporal.PlainDate
+  purchaseTimestamp: number
   unitPriceEur: number
 }
 export type LedgerSnapshot = { [symbol: string]: LedgerSnapshotItem[] }
@@ -41,9 +41,7 @@ export const calculateTax = (taxInfo: TaxInfo) => {
    * and 40% if the holding time was at least 10 years.
    */
   const heldMoreThan10Years =
-    taxInfo.fromDate
-      .add(Temporal.Duration.from({ years: 10 }))
-      .until(taxInfo.toDate).days >= 0
+    addYears(taxInfo.fromTimestamp, 10).getTime() < taxInfo.toTimestamp
   const deemedAcquisitionCost = heldMoreThan10Years ? 0.4 : 0.2
 
   /**
@@ -58,17 +56,13 @@ export const calculateTax = (taxInfo: TaxInfo) => {
   )
 }
 
-export const calculateGains = (
-  from: Temporal.PlainDate,
-  to: Temporal.PlainDate,
-  ledger: Ledger
-) => {
+export const calculateGains = (from: number, to: number, ledger: Ledger) => {
   const computed = toComputedLedger(ledger)
   const untilTo = computed.ledger.filter(
-    ({ date }) => date.until(from).days < 0 && date.until(to).days >= 0
+    ({ timestamp }) => timestamp > from && timestamp <= to
   )
   return untilTo.reduce((sum, { taxableGain }) => sum + taxableGain, 0)
 }
 
 export const sortLedger = (ledger: Ledger) =>
-  [...ledger].sort((a, b) => a.date.since(b.date).days)
+  [...ledger].sort((a, b) => a.timestamp - b.timestamp)

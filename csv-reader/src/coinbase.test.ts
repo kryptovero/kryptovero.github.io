@@ -1,5 +1,4 @@
 import test from "ava"
-import { Temporal } from "proposal-temporal"
 import { readCsv } from "."
 
 const COINBASE_HEADER = `portfolio,trade id,product,side,created at,size,size unit,price,fee,total,price/fee/total unit`
@@ -21,7 +20,7 @@ test("Buy BTC with EUR", (t) => {
     [
       {
         id: "coinbase_12345",
-        date: Temporal.PlainDate.from("2021-01-01"),
+        timestamp: utcDate("2021-01-01"),
         from: { symbol: "EUR", unitPriceEur: 1, amount: 10 },
         to: { symbol: "BTC", amount: 0.001, unitPriceEur: 10_000 },
         fee: { symbol: "EUR", amount: 0.1 },
@@ -41,7 +40,7 @@ test("Sell BTC to EUR", (t) => {
     [
       {
         id: "coinbase_1234",
-        date: Temporal.PlainDate.from("2021-01-01"),
+        timestamp: utcDate("2021-01-01"),
         from: { symbol: "BTC", amount: 0.001, unitPriceEur: 10_000 },
         to: { symbol: "EUR", unitPriceEur: 1, amount: 10 },
         fee: { symbol: "EUR", amount: 0.1 },
@@ -61,7 +60,7 @@ test("Sell ETH to ADA", (t) => {
     [
       {
         id: "coinbase_1234",
-        date: Temporal.PlainDate.from("2021-01-01"),
+        timestamp: utcDate("2021-01-01"),
         from: { symbol: "ETH", amount: 0.001998945 },
         to: { symbol: "ADA", amount: 3.25 },
         fee: { symbol: "ETH", amount: 0.000009945 },
@@ -81,7 +80,7 @@ test("Sell ADA to ETH", (t) => {
     [
       {
         id: "coinbase_1234",
-        date: Temporal.PlainDate.from("2021-01-01"),
+        timestamp: utcDate("2021-01-01"),
         from: { symbol: "ADA", amount: 0.001998945 },
         to: { symbol: "ETH", amount: 3.25 },
         fee: { symbol: "ETH", amount: 0.000009945 },
@@ -91,6 +90,7 @@ test("Sell ADA to ETH", (t) => {
 })
 
 import { ExecutionContext } from "ava"
+import { utcDate } from "./testutils"
 
 export const eq = <T>(t: ExecutionContext<unknown>, left: T, right: T) =>
   t.deepEqual(

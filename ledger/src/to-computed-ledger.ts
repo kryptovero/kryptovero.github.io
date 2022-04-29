@@ -1,4 +1,3 @@
-import { Temporal } from "proposal-temporal"
 import { calculateTax, Coin, Ledger, LedgerItem, sortLedger, TaxInfo } from "."
 
 // TODO: Calculations should be only done with proper Decimals instead of floating points.
@@ -11,7 +10,7 @@ export type ComputedLedgerItem = LedgerItem & {
 
 type ConsumedLedgerItem = {
   amount: number
-  purchaseDate: Temporal.PlainDate
+  purchaseTimestamp: number
   unitPriceEur: number
   item: LedgerItem
 }
@@ -62,8 +61,8 @@ const compute = (
             (item.amount / ledgerItem.from.amount) *
             ledgerItem.to.amount *
             knownToUnitPrice,
-          fromDate: item.purchaseDate,
-          toDate: ledgerItem.date,
+          fromTimestamp: item.purchaseTimestamp,
+          toTimestamp: ledgerItem.timestamp,
           fromFeesEur: itemFeeAmountEur,
           toFeesEur:
             ledgerItemFeeAmountEur * (item.amount / ledgerItem.from.amount),
@@ -85,14 +84,14 @@ const compute = (
             (remaining / ledgerItem.from.amount) *
             ledgerItem.to.amount *
             knownToUnitPrice,
-          fromDate: item.purchaseDate,
-          toDate: ledgerItem.date,
+          fromTimestamp: item.purchaseTimestamp,
+          toTimestamp: ledgerItem.timestamp,
           fromFeesEur: itemFeeAmountEur * (remaining / item.amount),
           toFeesEur:
             ledgerItemFeeAmountEur * (remaining / ledgerItem.from.amount),
         }
         itemsConsumed.push({
-          date: item.item.date,
+          timestamp: item.item.timestamp,
           id: item.item.id,
           from: {
             ...item.item.from,
@@ -119,15 +118,17 @@ const compute = (
 
   if (remaining > ZERO_WITH_WIGGLE_SPACE && ledgerItem.from.symbol !== "EUR") {
     throw new Error(
-      `There's not enough ${
+      `There's not enough ${ledgerItem.from.symbol} at ${
+        ledgerItem.timestamp
+      }: You're trying to convert ${ledgerItem.from.amount} ${
         ledgerItem.from.symbol
-      } at ${ledgerItem.date.toString()}: You're trying to convert ${
-        ledgerItem.from.amount
-      } ${ledgerItem.from.symbol} to ${ledgerItem.to.amount} ${
-        ledgerItem.to.symbol
-      }, but you had only ${ledgerItem.from.amount - remaining} ${
+      } to ${ledgerItem.to.amount} ${ledgerItem.to.symbol}, but you had only ${
+        ledgerItem.from.amount - remaining
+      } ${
         ledgerItem.from.symbol
-      }. Please make sure you have full history of transactions up until ${ledgerItem.date.toString()} before trying again.`
+      }. Please make sure you have full history of transactions up until ${
+        ledgerItem.timestamp
+      } before trying again.`
     )
   }
 
@@ -152,7 +153,7 @@ const compute = (
             {
               amount: ledgerItem.to.amount,
               item: ledgerItem,
-              purchaseDate: ledgerItem.date,
+              purchaseTimestamp: ledgerItem.timestamp,
               unitPriceEur: toUnitPriceEur,
             },
           ],

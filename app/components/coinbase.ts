@@ -1,15 +1,14 @@
-import { Temporal } from "proposal-temporal";
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
+import addDays from "date-fns/addDays";
 
-export const getPriceAt = async (date: Temporal.PlainDate, symbol: string) => {
+const toISOString = (timestamp: number | Date) =>
+  new Date(timestamp).toISOString();
+
+export const getPriceAt = async (timestamp: number, symbol: string) => {
   const result = await fetch(
-    `https://api.pro.coinbase.com/products/${symbol}-EUR/candles?start=${date.toString(
-      { calendarName: "never" }
-    )}Z00:00:00.00&end=${date
-      .add(Temporal.Duration.from({ days: 1 }))
-      .toString({
-        calendarName: "never",
-      })}Z00:00:00.00&granularity=86400`
+    `https://api.pro.coinbase.com/products/${symbol}-EUR/candles?start=${toISOString(
+      timestamp
+    )}&end=${toISOString(addDays(timestamp, 1))}&granularity=86400`
   ).then((res) => res.json());
   const first = result?.[0];
   if (!first) throw new Error("No result");

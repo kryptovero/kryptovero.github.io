@@ -1,4 +1,3 @@
-import { Temporal } from "proposal-temporal"
 import { Ledger, LedgerItem } from "@fifo/ledger"
 import * as B from "@fifo/csv-reader/src/binance/markets-symbols"
 
@@ -25,8 +24,8 @@ export function readTradeCsv(input: string): Ledger {
       const fromUnitPriceEur = row.type === "BUY" ? 1 : row.price
       const toUnitPriceEur = row.type === "BUY" ? row.price : 1
       return {
-        id: `binance_trade_${row.createdAt.toString()}`,
-        date: row.createdAt.toPlainDate(),
+        id: `binance_trade_${new Date(row.createdAt).toISOString()}`,
+        timestamp: row.createdAt,
         from: {
           symbol: fromSymbol,
           amount: fromAmount,
@@ -52,7 +51,7 @@ export function readBuySellCsv(input: string): Ledger {
       // TODO: omitting the unitPriceEurs from this since i'm unsure what's correct.
       return {
         id: `binance_buysell_${row.id}`,
-        date: row.createdAt.toPlainDate(),
+        timestamp: row.createdAt,
         from: {
           symbol: row.fromCoin,
           amount: row.fromAmount,
@@ -70,7 +69,7 @@ export function readBuySellCsv(input: string): Ledger {
 export function parseTradeRow(strRow: string[]) {
   const [dateUTC, market, type, price, amount, total, fee, feeCoin] = strRow
   return {
-    createdAt: Temporal.PlainDateTime.from(dateUTC),
+    createdAt: Date.parse(dateUTC + "Z"),
     market,
     type: type as "BUY" | "SELL",
     amount: parseFloat(amount),
@@ -99,7 +98,7 @@ export function parseBuySellRow(strRow: string[]) {
   const [fee, feeCoin] = fees.split(" ")
   return {
     id: transactionId,
-    createdAt: Temporal.PlainDateTime.from(dateUTC),
+    createdAt: Date.parse(dateUTC + "Z"),
     method,
     status,
     fromAmount: parseFloat(fromAmount),

@@ -87,8 +87,8 @@ function* autoFillCoinUnitPrices(action: PayloadAction<AppStateItem>) {
   const ledgerItems = readCsv(event.data);
   const prefilledEurValues = event.prefilledEurValues;
   for (const ledgerItem of ledgerItems) {
-    const fromKey = toCacheKey(ledgerItem.from.symbol, ledgerItem.date);
-    const toKey = toCacheKey(ledgerItem.to.symbol, ledgerItem.date);
+    const fromKey = toCacheKey(ledgerItem.from.symbol, ledgerItem.timestamp);
+    const toKey = toCacheKey(ledgerItem.to.symbol, ledgerItem.timestamp);
     if (fromKey in prefilledEurValues || toKey in prefilledEurValues) continue;
     if (
       ledgerItem.from.unitPriceEur ??
@@ -99,7 +99,7 @@ function* autoFillCoinUnitPrices(action: PayloadAction<AppStateItem>) {
     try {
       const filledFrom = yield call(
         getPriceAt,
-        ledgerItem.date,
+        ledgerItem.timestamp,
         ledgerItem.from.symbol
       );
       prefilledEurValues[fromKey] = filledFrom;
@@ -107,7 +107,7 @@ function* autoFillCoinUnitPrices(action: PayloadAction<AppStateItem>) {
       try {
         const filledTo = yield call(
           getPriceAt,
-          ledgerItem.date,
+          ledgerItem.timestamp,
           ledgerItem.from.symbol
         );
         prefilledEurValues[toKey] = filledTo;

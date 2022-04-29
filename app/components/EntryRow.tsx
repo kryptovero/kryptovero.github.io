@@ -84,8 +84,13 @@ function ItemRow({
   return (
     <tr>
       <td>
-        <a href={linkTo ? `#${item.id}` : undefined} title={item.id}>
-          {item.date.toLocaleString("fi")}
+        <a
+          href={linkTo ? `#${item.id}` : undefined}
+          title={`${item.id} / ${new Date(item.timestamp).toLocaleString(
+            "fi"
+          )}`}
+        >
+          {new Date(item.timestamp).toLocaleDateString("fi")}
         </a>
       </td>
       <td>
