@@ -6,13 +6,12 @@ import React, {
   useState,
 } from "react";
 import { Ledger, LedgerItem } from "@fifo/ledger";
-import { Temporal } from "proposal-temporal";
 import s from "../styles/AddRowForm.module.scss";
 import { insertEvent, useAppDispatch } from "./store";
 import { getPriceAt, useCoinSymbolsQuery } from "./coinbase";
 
 const DEFAULT_ITEM = {
-  date: Temporal.now.plainDate("iso8601"),
+  timestamp: Date.now(),
   from: { amount: 1000, symbol: "EUR" },
   to: { amount: 1, symbol: "BTC" },
   fee: { amount: 0, symbol: "EUR", unitPriceEur: 1 },
@@ -27,7 +26,10 @@ const autoFillUniPriceIfMissing = async (ledgerItem: LedgerItem) => {
       ...ledgerItem,
       from: {
         ...ledgerItem.from,
-        unitPriceEur: await getPriceAt(ledgerItem.date, ledgerItem.from.symbol),
+        unitPriceEur: await getPriceAt(
+          ledgerItem.timestamp,
+          ledgerItem.from.symbol
+        ),
       },
     };
   } catch (e) {
@@ -36,7 +38,10 @@ const autoFillUniPriceIfMissing = async (ledgerItem: LedgerItem) => {
         ...ledgerItem,
         to: {
           ...ledgerItem.to,
-          unitPriceEur: await getPriceAt(ledgerItem.date, ledgerItem.to.symbol),
+          unitPriceEur: await getPriceAt(
+            ledgerItem.timestamp,
+            ledgerItem.to.symbol
+          ),
         },
       };
     } catch (e) {}
@@ -95,8 +100,8 @@ function AddRowForm({
             <div>
               <input
                 className={s.dateInput}
-                key={data.date.toLocaleString("fi")}
-                defaultValue={data.date.toLocaleString("fi")}
+                key={data.timestamp}
+                defaultValue={new Date(data.timestamp).toLocaleDateString("fi")}
                 pattern="^\d{1,2}\.\d{1,2}\.\d{4}$"
                 required
                 onBlur={(e) => {
@@ -106,7 +111,7 @@ function AddRowForm({
                       .map((v) => parseInt(v, 10));
                     setData({
                       ...data,
-                      date: Temporal.PlainDate.from({ day, month, year }),
+                      timestamp: new Date(year, month - 1, day).getTime(),
                     });
                   }
                 }}
@@ -264,7 +269,7 @@ function AddRowForm({
 }
 
 const withErrorBoundary = <P extends {}>(
-  Component: React.ComponentType<P>
+  Component: React.FunctionComponent<P>
 ): React.FC<P> => {
   function WithErrorBoundary(props) {
     return (

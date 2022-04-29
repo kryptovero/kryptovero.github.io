@@ -1,6 +1,5 @@
 import { v4 as uuid } from "uuid";
 import { calculateGains } from "@fifo/ledger";
-import { Temporal } from "proposal-temporal";
 import Header from "../components/Header";
 import { useSave } from "../components/use-save";
 import s from "../styles/App.module.scss";
@@ -16,6 +15,7 @@ import {
   isPrefillingSelector,
 } from "../components/store";
 import Loading from "../components/Loading";
+import getYear from "date-fns/getYear";
 
 export default function App() {
   usePreventUserLeaving();
@@ -26,7 +26,7 @@ export default function App() {
   }, [appState, onAutosave]);
   const { ledger, consumed } = useAppSelector(computedLedgerSelector);
   const uniqYears = Array.from(
-    new Set(ledger.map((item) => item.date.year))
+    new Set(ledger.map((item) => getYear(item.timestamp)))
   ).sort((a, b) => b - a);
   const [showEditRow, setShowEditRow] = useState<string | null>(null);
   const isPrefilling = useAppSelector(isPrefillingSelector);
@@ -58,8 +58,8 @@ export default function App() {
           </div>
           {uniqYears.map((year) => {
             const gains = calculateGains(
-              Temporal.PlainDate.from(`${year}-01-01`),
-              Temporal.PlainDate.from(`${year}-12-31`),
+              Date.parse(`${year}-01-01`),
+              Date.parse(`${year}-12-31`),
               ledger
             );
             const taxes = gains * 0.3;
@@ -78,7 +78,7 @@ export default function App() {
                   </dd>
                 </dl>
                 {ledger
-                  .filter((item) => item.date.year === year)
+                  .filter((item) => getYear(item.timestamp) === year)
                   .reverse()
                   .map((item) => (
                     <EntryRow

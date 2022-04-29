@@ -1,4 +1,3 @@
-import { Temporal } from "proposal-temporal"
 import { Ledger, LedgerItem } from "@fifo/ledger"
 
 export function readCsv(input: string): Ledger {
@@ -17,7 +16,7 @@ export function readCsv(input: string): Ledger {
       const toUnitPriceEur = row.side === "BUY" ? row.price : 1
       return {
         id: `coinbase_${row.tradeId}`,
-        date: row.createdAt,
+        timestamp: row.createdAt,
         from: {
           symbol: fromSymbol,
           amount: fromAmount,
@@ -54,7 +53,7 @@ function parseRow(strRow: string[]) {
     tradeId: parseInt(tradeId, 10),
     product,
     side: side as "BUY" | "SELL",
-    createdAt: Temporal.PlainDate.from(createdAt.slice(0, 10)),
+    createdAt: Date.parse(createdAt),
     size: parseFloat(size),
     sizeUnit,
     price: parseFloat(price),

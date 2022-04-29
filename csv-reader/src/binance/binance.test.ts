@@ -1,6 +1,6 @@
 import test from "ava"
-import { Temporal } from "proposal-temporal"
 import { ExecutionContext } from "ava"
+import { utcDate } from "../testutils"
 import { readBuySellCsv, readTradeCsv } from "./binance"
 
 const BINANCE_TRADE_HEADER =
@@ -16,8 +16,7 @@ test("Empty report", (t) => {
 })
 
 test("TRADE: Sell BTC for USDT", (t) => {
-  eq(
-    t,
+  t.deepEqual(
     readTradeCsv(
       toCsv(
         BINANCE_TRADE_HEADER,
@@ -26,10 +25,10 @@ test("TRADE: Sell BTC for USDT", (t) => {
     ),
     [
       {
-        id: "binance_trade_2021-10-03T13:53:53",
-        date: Temporal.PlainDate.from("2021-10-03"),
-        from: { symbol: "BTC", amount: 0.00043 },
-        to: { symbol: "USDT", amount: 20.681538 },
+        id: "binance_trade_2021-10-03T13:53:53.000Z",
+        timestamp: Date.parse("2021-10-03T13:53:53.000Z"),
+        from: { symbol: "BTC", amount: 0.00043, unitPriceEur: undefined },
+        to: { symbol: "USDT", amount: 20.681538, unitPriceEur: undefined },
         fee: { symbol: "USDT", amount: 0.02068154 },
       },
     ]
@@ -37,8 +36,7 @@ test("TRADE: Sell BTC for USDT", (t) => {
 })
 
 test("TRADE: Sell LTC for BTC", (t) => {
-  eq(
-    t,
+  t.deepEqual(
     readTradeCsv(
       toCsv(
         BINANCE_TRADE_HEADER,
@@ -47,10 +45,10 @@ test("TRADE: Sell LTC for BTC", (t) => {
     ),
     [
       {
-        id: "binance_trade_2021-10-03T13:32:06",
-        date: Temporal.PlainDate.from("2021-10-03"),
-        from: { symbol: "LTC", amount: 5 },
-        to: { symbol: "BTC", amount: 0.0000539 },
+        id: "binance_trade_2021-10-03T13:32:06.000Z",
+        timestamp: Date.parse("2021-10-03T13:32:06.000Z"),
+        from: { symbol: "LTC", amount: 5, unitPriceEur: undefined },
+        to: { symbol: "BTC", amount: 0.0000539, unitPriceEur: undefined },
         fee: { symbol: "BTC", amount: 0.00000005 },
       },
     ]
@@ -58,8 +56,7 @@ test("TRADE: Sell LTC for BTC", (t) => {
 })
 
 test("TRADE: Buy LTC with BTC", (t) => {
-  eq(
-    t,
+  t.deepEqual(
     readTradeCsv(
       toCsv(
         BINANCE_TRADE_HEADER,
@@ -68,10 +65,10 @@ test("TRADE: Buy LTC with BTC", (t) => {
     ),
     [
       {
-        id: "binance_trade_2021-10-03T13:09:07",
-        date: Temporal.PlainDate.from("2021-10-03"),
-        from: { symbol: "BTC", amount: 0.000217 },
-        to: { symbol: "LTC", amount: 20 },
+        id: "binance_trade_2021-10-03T13:09:07.000Z",
+        timestamp: Date.parse("2021-10-03T13:09:07.000Z"),
+        from: { symbol: "BTC", amount: 0.000217, unitPriceEur: undefined },
+        to: { symbol: "LTC", amount: 20, unitPriceEur: undefined },
         fee: { symbol: "LTC", amount: 0.02 },
       },
     ]
@@ -79,8 +76,7 @@ test("TRADE: Buy LTC with BTC", (t) => {
 })
 
 test("BUY: Buy BTC with EUR", (t) => {
-  eq(
-    t,
+  t.deepEqual(
     readBuySellCsv(
       toCsv(
         BINANCE_BUYSELL_HEADER,
@@ -90,7 +86,7 @@ test("BUY: Buy BTC with EUR", (t) => {
     [
       {
         id: "binance_buysell_foobarbazidentifier",
-        date: Temporal.PlainDate.from("2021-10-03"),
+        timestamp: Date.parse("2021-10-03T11:31:19.000Z"),
         from: { symbol: "EUR", amount: 49.1 },
         to: { symbol: "BTC", amount: 0.00118984 },
         fee: { symbol: "EUR", amount: 0.0 },
@@ -98,9 +94,3 @@ test("BUY: Buy BTC with EUR", (t) => {
     ]
   )
 })
-
-export const eq = <T>(t: ExecutionContext<unknown>, left: T, right: T) =>
-  t.deepEqual(
-    JSON.parse(JSON.stringify(left)),
-    JSON.parse(JSON.stringify(right))
-  )

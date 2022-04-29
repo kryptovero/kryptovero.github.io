@@ -1,10 +1,9 @@
 import { Ledger, LedgerItem, sortLedger } from "@fifo/ledger";
 import { readCsv } from "@fifo/csv-reader";
 import { useEffect } from "react";
-import { Temporal } from "proposal-temporal";
 
-export const toCacheKey = (symbol: string, date: Temporal.PlainDate) =>
-  [symbol, date.toString({ calendarName: "never" })].join("-");
+export const toCacheKey = (symbol: string, timestamp: number) =>
+  [symbol, timestamp].join("-");
 type PrefilledEurValues = { [symbolDateKey: string]: number };
 type ImportAppStateItem = {
   type: "importCoinbaseCsv";
@@ -34,13 +33,17 @@ const applyPrefilledValues = (
       ...ledgerItem.from,
       unitPriceEur:
         ledgerItem.from.unitPriceEur ??
-        prefilledEurValues[toCacheKey(ledgerItem.from.symbol, ledgerItem.date)],
+        prefilledEurValues[
+          toCacheKey(ledgerItem.from.symbol, ledgerItem.timestamp)
+        ],
     },
     to: {
       ...ledgerItem.to,
       unitPriceEur:
         ledgerItem.to.unitPriceEur ??
-        prefilledEurValues[toCacheKey(ledgerItem.to.symbol, ledgerItem.date)],
+        prefilledEurValues[
+          toCacheKey(ledgerItem.to.symbol, ledgerItem.timestamp)
+        ],
     },
   }));
 

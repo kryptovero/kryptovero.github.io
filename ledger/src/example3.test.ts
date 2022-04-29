@@ -1,7 +1,6 @@
 import test from "ava"
-import { Temporal } from "proposal-temporal"
 import { calculateGains, Ledger } from "."
-import { eq } from "./testutils"
+import { eq, utcDate } from "./testutils"
 import { toComputedLedger } from "./to-computed-ledger"
 
 // Sourced from:
@@ -10,13 +9,13 @@ import { toComputedLedger } from "./to-computed-ledger"
 const initialLedger: Ledger = [
   {
     id: "1",
-    date: Temporal.PlainDate.from("2020-01-01"),
+    timestamp: utcDate("2020-01-01"),
     from: { amount: 10_000, symbol: "EUR", unitPriceEur: 1 },
     to: { amount: 10, symbol: "B", unitPriceEur: 1_000 },
   },
   {
     id: "2",
-    date: Temporal.PlainDate.from("2020-02-01"),
+    timestamp: utcDate("2020-02-01"),
     from: { amount: 1, symbol: "B", unitPriceEur: 500 },
     to: { amount: 500, symbol: "EUR", unitPriceEur: 1 },
   },
@@ -24,11 +23,7 @@ const initialLedger: Ledger = [
 
 test("Example 3.1", (t) => {
   t.is(
-    calculateGains(
-      Temporal.PlainDate.from("2019-12-31"),
-      Temporal.PlainDate.from("2020-02-01"),
-      initialLedger
-    ),
+    calculateGains(utcDate("2019-12-31"), utcDate("2020-02-01"), initialLedger),
     -500
   )
 
@@ -36,7 +31,7 @@ test("Example 3.1", (t) => {
     {
       item: initialLedger[0],
       amount: 9,
-      purchaseDate: Temporal.PlainDate.from("2020-01-01"),
+      purchaseTimestamp: utcDate("2020-01-01"),
       unitPriceEur: 1000,
     },
   ])
@@ -46,7 +41,7 @@ const ledger2: Ledger = [
   ...initialLedger,
   {
     id: "3",
-    date: Temporal.PlainDate.from("2020-03-01"),
+    timestamp: utcDate("2020-03-01"),
     from: { symbol: "B", amount: 9, unitPriceEur: 10_000 },
     to: { symbol: "EUR", amount: 90_000, unitPriceEur: 1 },
     fee: { symbol: "EUR", amount: 1_000, unitPriceEur: 1 },
@@ -55,11 +50,7 @@ const ledger2: Ledger = [
 
 test("Example 3.2", (t) => {
   t.is(
-    calculateGains(
-      Temporal.PlainDate.from("2020-02-01"),
-      Temporal.PlainDate.from("2020-03-01"),
-      ledger2
-    ),
+    calculateGains(utcDate("2020-02-01"), utcDate("2020-03-01"), ledger2),
     72_000
   )
 })
@@ -68,7 +59,7 @@ const ledger2_10YearVersion: Ledger = [
   ...initialLedger,
   {
     id: "4",
-    date: Temporal.PlainDate.from("2030-03-01"),
+    timestamp: utcDate("2030-03-01"),
     from: { symbol: "B", amount: 9, unitPriceEur: 10_000 },
     to: { symbol: "EUR", amount: 90_000, unitPriceEur: 1 },
     fee: { symbol: "EUR", amount: 1_000, unitPriceEur: 1 },
@@ -78,8 +69,8 @@ const ledger2_10YearVersion: Ledger = [
 test("Example 3.2, but hold for over 10 years", (t) => {
   t.is(
     calculateGains(
-      Temporal.PlainDate.from("2020-02-01"),
-      Temporal.PlainDate.from("2030-03-01"),
+      utcDate("2020-02-01"),
+      utcDate("2030-03-01"),
       ledger2_10YearVersion
     ),
     54_000

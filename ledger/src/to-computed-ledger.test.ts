@@ -1,7 +1,6 @@
 import test from "ava"
-import { Temporal } from "proposal-temporal"
 import { Ledger, LedgerItem } from "."
-import { eq } from "./testutils"
+import { eq, utcDate } from "./testutils"
 import { toComputedLedger } from "./to-computed-ledger"
 
 test("returns empty ledger passed empty ledger", (t) => {
@@ -11,7 +10,7 @@ test("returns empty ledger passed empty ledger", (t) => {
 test("returns ledger item with no gains on single ledger item", (t) => {
   const item: LedgerItem = {
     id: "123",
-    date: Temporal.PlainDate.from("2020-01-01"),
+    timestamp: utcDate("2020-01-01"),
     from: { symbol: "EUR", amount: 1, unitPriceEur: 1 },
     to: { amount: 10, symbol: "A", unitPriceEur: 0.1 },
   }
@@ -19,7 +18,14 @@ test("returns ledger item with no gains on single ledger item", (t) => {
     consumed: { "123": [] },
     ledger: [{ ...item, taxableGain: 0 }],
     left: {
-      A: [{ amount: 10, item, purchaseDate: item.date, unitPriceEur: 0.1 }],
+      A: [
+        {
+          amount: 10,
+          item,
+          purchaseTimestamp: item.timestamp,
+          unitPriceEur: 0.1,
+        },
+      ],
     },
   })
 })
@@ -27,13 +33,13 @@ test("returns ledger item with no gains on single ledger item", (t) => {
 test("calculates gains from one full back-forth purchase", (t) => {
   const from: LedgerItem = {
     id: "123",
-    date: Temporal.PlainDate.from("2020-01-01"),
+    timestamp: utcDate("2020-01-01"),
     from: { symbol: "EUR", amount: 1, unitPriceEur: 1 },
     to: { amount: 10, symbol: "A", unitPriceEur: 0.1 },
   }
   const to: LedgerItem = {
     id: "124",
-    date: Temporal.PlainDate.from("2020-01-02"),
+    timestamp: utcDate("2020-01-02"),
     from: { amount: 10, symbol: "A", unitPriceEur: 0.2 },
     to: { symbol: "EUR", amount: 2, unitPriceEur: 1 },
   }
@@ -52,13 +58,13 @@ test("calculates gains from one full back-forth purchase", (t) => {
 test("calculates gains from half back-forth purchase", (t) => {
   const from: LedgerItem = {
     id: "123",
-    date: Temporal.PlainDate.from("2020-01-01"),
+    timestamp: utcDate("2020-01-01"),
     from: { symbol: "EUR", amount: 1, unitPriceEur: 1 },
     to: { amount: 10, symbol: "A", unitPriceEur: 0.1 },
   }
   const to: LedgerItem = {
     id: "124",
-    date: Temporal.PlainDate.from("2020-01-02"),
+    timestamp: utcDate("2020-01-02"),
     from: { amount: 5, symbol: "A", unitPriceEur: 0.2 },
     to: { symbol: "EUR", amount: 1, unitPriceEur: 1 },
   }
@@ -80,7 +86,12 @@ test("calculates gains from half back-forth purchase", (t) => {
     ],
     left: {
       A: [
-        { amount: 5, item: from, purchaseDate: from.date, unitPriceEur: 0.1 },
+        {
+          amount: 5,
+          item: from,
+          purchaseTimestamp: from.timestamp,
+          unitPriceEur: 0.1,
+        },
       ],
     },
   })
@@ -89,13 +100,13 @@ test("calculates gains from half back-forth purchase", (t) => {
 test("Reduces all selling fees from gains when selling full amount", (t) => {
   const from: LedgerItem = {
     id: "123",
-    date: Temporal.PlainDate.from("2020-01-01"),
+    timestamp: utcDate("2020-01-01"),
     from: { symbol: "EUR", amount: 1, unitPriceEur: 1 },
     to: { amount: 10, symbol: "A", unitPriceEur: 0.1 },
   }
   const to: LedgerItem = {
     id: "124",
-    date: Temporal.PlainDate.from("2020-01-02"),
+    timestamp: utcDate("2020-01-02"),
     from: { amount: 10, symbol: "A", unitPriceEur: 0.2 },
     to: { symbol: "EUR", amount: 2, unitPriceEur: 1 },
     fee: { symbol: "EUR", amount: 0.1, unitPriceEur: 1 },
@@ -116,14 +127,14 @@ test("Reduces all selling fees from gains when selling full amount", (t) => {
 test("Reduces all selling fees + all purchase fees from gains when selling full amount", (t) => {
   const from: LedgerItem = {
     id: "123",
-    date: Temporal.PlainDate.from("2020-01-01"),
+    timestamp: utcDate("2020-01-01"),
     from: { symbol: "EUR", amount: 1, unitPriceEur: 1 },
     to: { amount: 10, symbol: "A", unitPriceEur: 0.1 },
     fee: { symbol: "EUR", amount: 0.1, unitPriceEur: 1 },
   }
   const to: LedgerItem = {
     id: "124",
-    date: Temporal.PlainDate.from("2020-01-02"),
+    timestamp: utcDate("2020-01-02"),
     from: { amount: 10, symbol: "A", unitPriceEur: 0.2 },
     to: { symbol: "EUR", amount: 2, unitPriceEur: 1 },
     fee: { symbol: "EUR", amount: 0.1, unitPriceEur: 1 },
@@ -144,14 +155,14 @@ test("Reduces all selling fees + all purchase fees from gains when selling full 
 test("Reduces all selling fees + partial of purchase fees from gains when selling partial amount", (t) => {
   const from: LedgerItem = {
     id: "123",
-    date: Temporal.PlainDate.from("2020-01-01"),
+    timestamp: utcDate("2020-01-01"),
     from: { symbol: "EUR", amount: 1, unitPriceEur: 1 },
     to: { amount: 10, symbol: "A", unitPriceEur: 0.1 },
     fee: { symbol: "EUR", amount: 0.1, unitPriceEur: 1 },
   }
   const to: LedgerItem = {
     id: "124",
-    date: Temporal.PlainDate.from("2020-01-02"),
+    timestamp: utcDate("2020-01-02"),
     from: { amount: 5, symbol: "A", unitPriceEur: 0.2 },
     to: { symbol: "EUR", amount: 1, unitPriceEur: 1 },
     fee: { symbol: "EUR", amount: 0.1, unitPriceEur: 1 },
@@ -180,7 +191,7 @@ test("Reduces all selling fees + partial of purchase fees from gains when sellin
         {
           amount: 5,
           item: from,
-          purchaseDate: from.date,
+          purchaseTimestamp: from.timestamp,
           unitPriceEur: 0.1,
         },
       ],
@@ -191,21 +202,21 @@ test("Reduces all selling fees + partial of purchase fees from gains when sellin
 test("Reduces all selling fees + partial of last purchase fee + all of first purchase fee from gains when selling partial amount of two purchases", (t) => {
   const from1: LedgerItem = {
     id: "123",
-    date: Temporal.PlainDate.from("2020-01-01"),
+    timestamp: utcDate("2020-01-01"),
     from: { symbol: "EUR", amount: 10, unitPriceEur: 1 },
     to: { amount: 10, symbol: "A", unitPriceEur: 1 },
     fee: { symbol: "EUR", amount: 1, unitPriceEur: 1 },
   }
   const from2: LedgerItem = {
     id: "124",
-    date: Temporal.PlainDate.from("2020-01-02"),
+    timestamp: utcDate("2020-01-02"),
     from: { symbol: "EUR", amount: 20, unitPriceEur: 1 },
     to: { amount: 10, symbol: "A", unitPriceEur: 2 },
     fee: { symbol: "EUR", amount: 1, unitPriceEur: 1 },
   }
   const to: LedgerItem = {
     id: "125",
-    date: Temporal.PlainDate.from("2020-01-03"),
+    timestamp: utcDate("2020-01-03"),
     from: { amount: 16, symbol: "A", unitPriceEur: 2.5 },
     to: { symbol: "EUR", amount: 40, unitPriceEur: 1 },
     fee: { symbol: "EUR", amount: 1.6, unitPriceEur: 1 },
@@ -267,7 +278,7 @@ test("Reduces all selling fees + partial of last purchase fee + all of first pur
         {
           amount: 4,
           item: from2,
-          purchaseDate: from2.date,
+          purchaseTimestamp: from2.timestamp,
           unitPriceEur: from2.to.unitPriceEur!,
         },
       ],
@@ -278,21 +289,21 @@ test("Reduces all selling fees + partial of last purchase fee + all of first pur
 test("Does not reduce fees if unitPriceEur is not known", (t) => {
   const from: LedgerItem = {
     id: "123",
-    date: Temporal.PlainDate.from("2020-01-01"),
+    timestamp: utcDate("2020-01-01"),
     from: { symbol: "EUR", amount: 1, unitPriceEur: 1 },
     to: { amount: 10, symbol: "A", unitPriceEur: 0.1 },
     fee: { amount: 100, symbol: "C" },
   }
   const to1: LedgerItem = {
     id: "124",
-    date: Temporal.PlainDate.from("2020-01-02"),
+    timestamp: utcDate("2020-01-02"),
     from: { amount: 5, symbol: "A", unitPriceEur: 0.2 },
     to: { symbol: "EUR", amount: 1, unitPriceEur: 1 },
     fee: { symbol: "B", amount: 0.01, unitPriceEur: 5 },
   }
   const to2: LedgerItem = {
     id: "125",
-    date: Temporal.PlainDate.from("2020-01-03"),
+    timestamp: utcDate("2020-01-03"),
     from: { amount: 5, symbol: "A", unitPriceEur: 0.2 },
     to: { symbol: "EUR", amount: 1, unitPriceEur: 1 },
     fee: { symbol: "B", amount: 0.01, unitPriceEur: 5 },
@@ -327,13 +338,13 @@ test("Throws an error if trying to sell nonexisting coins", (t) => {
   const ledger: Ledger = [
     {
       id: "123",
-      date: Temporal.PlainDate.from("2020-01-01"),
+      timestamp: utcDate("2020-01-01"),
       from: { symbol: "EUR", amount: 1, unitPriceEur: 1 },
       to: { symbol: "A", amount: 10 },
     },
     {
       id: "124",
-      date: Temporal.PlainDate.from("2020-01-02"),
+      timestamp: utcDate("2020-01-02"),
       from: { symbol: "A", amount: 20 },
       to: { symbol: "EUR", amount: 100, unitPriceEur: 1 },
     },
