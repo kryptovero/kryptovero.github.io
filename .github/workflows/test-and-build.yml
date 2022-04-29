@@ -9,6 +9,7 @@ jobs:
       - uses: actions/setup-node@v2
         with:
           cache: "yarn"
+          node-version: "16"
       - run: yarn --frozen-lockfile
       - run: yarn test
       - run: yarn build
