@@ -14,8 +14,5 @@
     "start": "yarn workspaces run start",
     "build": "yarn workspaces run build",
     "test": "yarn workspaces run test"
-  },
-  "resolutions": {
-    "node-sass": "^5.0.0"
   }
 }
