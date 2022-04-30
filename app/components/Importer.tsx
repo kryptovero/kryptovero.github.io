@@ -5,6 +5,7 @@ import { useCallback } from "react";
 const Importer: React.FC<{
   onRead?: (file: File) => void;
   accept?: HTMLInputElement["accept"];
+  children?: React.ReactNode;
 }> = ({ children, onRead, accept }) => {
   const [isHovering, setIsHovering] = useState(false);
   const inputRef = useRef<HTMLInputElement>();
@@ -14,7 +15,7 @@ const Importer: React.FC<{
     async (file: FileList | null) => {
       if (!file || file.length === 0) return;
       onRead?.(file[0]);
-      inputRef.current.value = null;
+      (inputRef as any).current.value = null; // TODO: This was due React update, check later
     },
     [onRead]
   );
@@ -31,7 +32,7 @@ const Importer: React.FC<{
     >
       <input
         type="file"
-        ref={inputRef}
+        ref={inputRef as any} // TODO: This was due React update, check later
         onChange={(e) => handleUpload(e.target.files)}
         accept={accept}
       />

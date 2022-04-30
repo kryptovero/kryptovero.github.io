@@ -4,7 +4,10 @@ import addDays from "date-fns/addDays";
 const toISOString = (timestamp: number | Date) =>
   new Date(timestamp).toISOString();
 
-export const getPriceAt = async (timestamp: number, symbol: string) => {
+export const getPriceAt = async (
+  timestamp: number,
+  symbol: string
+): Promise<number> => {
   const result = await fetch(
     `https://api.pro.coinbase.com/products/${symbol}-EUR/candles?start=${toISOString(
       timestamp
