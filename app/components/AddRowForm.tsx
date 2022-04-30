@@ -271,7 +271,7 @@ function AddRowForm({
 const withErrorBoundary = <P extends {}>(
   Component: React.FunctionComponent<P>
 ): React.FC<P> => {
-  function WithErrorBoundary(props) {
+  function WithErrorBoundary(props: P) {
     return (
       <Suspense fallback={<div className={s.overlayBg} />}>
         <Component {...props} />

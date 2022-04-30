@@ -4,7 +4,7 @@ import {
   createSelector,
   PayloadAction,
 } from "@reduxjs/toolkit";
-import { takeEvery, call, put } from "redux-saga/effects";
+import { takeEvery, call, put } from "typed-redux-saga";
 import createSagaMiddleware from "redux-saga";
 import { toComputedLedger } from "@fifo/ledger";
 import { TypedUseSelectorHook, useDispatch, useSelector } from "react-redux";
@@ -17,7 +17,7 @@ const sanityCheckComputedLedgerBeforeInsert = (events: AppStateItem[]) => {
     toComputedLedger(events.reduce(applyLedgerItem, []));
     return true;
   } catch (e) {
-    alert(e.message);
+    alert(e instanceof Error ? e.message : `${e}`);
     return false;
   }
 };
@@ -97,7 +97,7 @@ function* autoFillCoinUnitPrices(action: PayloadAction<AppStateItem>) {
       continue;
 
     try {
-      const filledFrom = yield call(
+      const filledFrom = yield* call(
         getPriceAt,
         ledgerItem.timestamp,
         ledgerItem.from.symbol
@@ -105,7 +105,7 @@ function* autoFillCoinUnitPrices(action: PayloadAction<AppStateItem>) {
       prefilledEurValues[fromKey] = filledFrom;
     } catch (e) {
       try {
-        const filledTo = yield call(
+        const filledTo = yield* call(
           getPriceAt,
           ledgerItem.timestamp,
           ledgerItem.from.symbol

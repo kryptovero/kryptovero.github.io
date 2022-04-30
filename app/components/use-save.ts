@@ -33,7 +33,7 @@ export function useSave() {
 }
 
 async function getFileHandle() {
-  if (!("showSaveFilePicker" in window)) return null; // Only supported at Chrome, Opera at the moment
+  if (!("showSaveFilePicker" in window)) return undefined; // Only supported at Chrome, Opera at the moment
 
   try {
     return await showSaveFilePicker({
@@ -45,7 +45,7 @@ async function getFileHandle() {
       ],
     });
   } catch (e) {
-    return null;
+    return undefined;
   }
 }
 

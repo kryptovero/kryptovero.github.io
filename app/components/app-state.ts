@@ -140,6 +140,8 @@ export const usePreventUserLeaving = () => {
     function confirmExit() {
       return "Are you sure you want to exit? You may have unsaved changes.";
     }
-    return () => (window.onbeforeunload = null);
+    return () => {
+      window.onbeforeunload = null;
+    };
   }, []);
 };

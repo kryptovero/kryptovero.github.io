@@ -55,7 +55,7 @@ export default function EntryRow({
       </table>
       <button
         type="button"
-        onClick={() => onEdit(item.id)}
+        onClick={() => onEdit?.(item.id)}
         className={`btn btn--secondary ${s.editButton}`}
       >
         <img src="/edit.svg" alt="Edit" />
