@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build && next export",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "test": "exit 0"
   },
   "dependencies": {
     "@reduxjs/toolkit": "^1.6.1",
