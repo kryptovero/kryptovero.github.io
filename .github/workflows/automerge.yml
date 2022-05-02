@@ -16,11 +16,11 @@ jobs:
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
         run: |
           function get_pending_jobs() {
-            gh pr view "$PR_URL" --json statusCheckRollup --jq '.statusCheckRollup | map(select(.name != "dependabot")) | map(select(.status != "COMPLETED")).[]'
+            gh pr view "$PR_URL" --json statusCheckRollup --jq '.statusCheckRollup | map(select(.name != "dependabot")) | map(select(.status != "COMPLETED") | select(.status != "")).[]'
           }
 
           function get_failed_jobs() {
-            gh pr view "$PR_URL" --json statusCheckRollup --jq '.statusCheckRollup | map(select(.name != "dependabot")) | map(select(.conclusion != "SUCCESS")).[]'
+            gh pr view "$PR_URL" --json statusCheckRollup --jq '.statusCheckRollup | map(select(.name != "dependabot")) | map(select(.conclusion != "SUCCESS") | select(.conclusion != "NEUTRAL") | select(.conclusion != "")).[]'
           }
 
           function wait_until_completed() {
