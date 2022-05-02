@@ -117,18 +117,14 @@ const compute = (
   }
 
   if (remaining > ZERO_WITH_WIGGLE_SPACE && ledgerItem.from.symbol !== "EUR") {
+    const timeFormatted = new Date(ledgerItem.timestamp).toLocaleString("fi-FI")
     throw new Error(
-      `There's not enough ${ledgerItem.from.symbol} at ${
-        ledgerItem.timestamp
-      }: You're trying to convert ${ledgerItem.from.amount} ${
-        ledgerItem.from.symbol
-      } to ${ledgerItem.to.amount} ${ledgerItem.to.symbol}, but you had only ${
-        ledgerItem.from.amount - remaining
-      } ${
-        ledgerItem.from.symbol
-      }. Please make sure you have full history of transactions up until ${
-        ledgerItem.timestamp
-      } before trying again.`
+      `Lisääthän transaktiot aikajärjestykessä vanhimmasta uusimpaan!\n\n` +
+        `Yritit vähentää ${ledgerItem.from.amount} ${ledgerItem.from.symbol} aikaleimalla ${timeFormatted}, ` +
+        `mutta tilillä ei laskujeni mukaan ole tarpeeksi valuuttaa, vaan siellä on ainoastaan ` +
+        `${ledgerItem.from.amount - remaining} ${ledgerItem.from.symbol}. ` +
+        `Tämä luultavasti johtuu siitä, että olet ostanut kyseistä valuuttaa aiemmin, mutta se puuttuu vielä järjestelmästä. ` +
+        `Kryptovero.fi olettaa, että transaktiot syötetään aina siinä järjestyksessä kun ne ovat tapahtuneet, vanhimmasta uusimpaan.`
     )
   }
 
