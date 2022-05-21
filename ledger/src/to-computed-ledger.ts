@@ -4,8 +4,14 @@ import { calculateTax, Coin, Ledger, LedgerItem, sortLedger, TaxInfo } from "."
 // Most coins use up to 8 decimals of precision.
 const ZERO_WITH_WIGGLE_SPACE = 1e-9
 
-export type ComputedLedgerItem = LedgerItem & {
+export type TaxComputedLedgerItem = LedgerItem & {
   taxableGain: number
+}
+
+export type ComputedLedgerItem = TaxComputedLedgerItem & {
+  buyPrice: number
+  sellPrice: number
+  fees: number
 }
 
 type ConsumedLedgerItem = {
@@ -17,7 +23,7 @@ type ConsumedLedgerItem = {
 
 export type ComputedLedger = {
   ledger: ComputedLedgerItem[]
-  consumed: Record<LedgerItem["id"], ComputedLedgerItem[]>
+  consumed: Record<LedgerItem["id"], TaxComputedLedgerItem[]>
   left: Record<Coin["symbol"], ConsumedLedgerItem[]>
 }
 
@@ -43,7 +49,7 @@ const compute = (
   const newFrom: typeof currFrom = []
   const taxGains: TaxInfo[] = []
   const knownToUnitPrice = calculateToUnitPrice(ledgerItem, 0)
-  const itemsConsumed: ComputedLedgerItem[] = []
+  const itemsConsumed: TaxComputedLedgerItem[] = []
   const ledgerItemFeeAmountEur =
     (ledgerItem.fee?.unitPriceEur ?? 0) * (ledgerItem.fee?.amount ?? 0)
 
@@ -134,35 +140,38 @@ const compute = (
     (sum, taxInfo) => sum + calculateTax(taxInfo),
     0
   )
+  const sellPrice = taxGains.reduce((sum, taxInfo) => sum + taxInfo.toEur, 0)
+  const buyPrice = taxGains.reduce((sum, taxInfo) => sum + taxInfo.fromEur, 0)
+  const fees = taxGains.reduce(
+    (sum, taxInfo) => sum + taxInfo.fromFeesEur + taxInfo.toFeesEur,
+    0
+  )
 
-  const leftFrom =
-    ledgerItem.from.symbol === "EUR"
-      ? {}
-      : { [ledgerItem.from.symbol]: newFrom }
+  if (ledgerItem.from.symbol !== "EUR") {
+    left[ledgerItem.from.symbol] = newFrom
+  }
 
-  const leftTo =
-    ledgerItem.to.symbol === "EUR"
-      ? {}
-      : {
-          [ledgerItem.to.symbol]: [
-            ...currTo,
-            {
-              amount: ledgerItem.to.amount,
-              item: ledgerItem,
-              purchaseTimestamp: ledgerItem.timestamp,
-              unitPriceEur: toUnitPriceEur,
-            },
-          ],
-        }
+  if (ledgerItem.to.symbol !== "EUR") {
+    left[ledgerItem.to.symbol] = currTo
+    currTo.push({
+      amount: ledgerItem.to.amount,
+      item: ledgerItem,
+      purchaseTimestamp: ledgerItem.timestamp,
+      unitPriceEur: toUnitPriceEur,
+    })
+  }
+
+  consumed[ledgerItem.id] = itemsConsumed
+  ;(ledgerItem as ComputedLedgerItem).taxableGain = taxableGain
+  ;(ledgerItem as ComputedLedgerItem).sellPrice = sellPrice
+  ;(ledgerItem as ComputedLedgerItem).buyPrice = buyPrice
+  ;(ledgerItem as ComputedLedgerItem).fees = fees
+  ledger.push(ledgerItem as ComputedLedgerItem)
 
   return {
-    consumed: { ...consumed, [ledgerItem.id]: itemsConsumed },
-    ledger: [...ledger, { ...ledgerItem, taxableGain }],
-    left: {
-      ...left,
-      ...leftFrom,
-      ...leftTo,
-    },
+    consumed,
+    ledger,
+    left,
   }
 }
 
