@@ -16,6 +16,7 @@ import {
 } from "../components/store";
 import Loading from "../components/Loading";
 import getYear from "date-fns/getYear";
+import { printYear } from "../components/print-year";
 
 export default function App() {
   usePreventUserLeaving();
@@ -30,9 +31,6 @@ export default function App() {
   ).sort((a, b) => b - a);
   const [showEditRow, setShowEditRow] = useState<string | null>(null);
   const isPrefilling = useAppSelector(isPrefillingSelector);
-  const [showAllRowsForYear, setShowAllRowsForYear] = useState<false | number>(
-    false
-  );
 
   return (
     <>
@@ -135,61 +133,15 @@ export default function App() {
                     </dd>
                   </dl>
                 </div>
-                {showAllRowsForYear !== year ? (
-                  <div className={`${s.box} noprint`}>
-                    <button
-                      type="button"
-                      className="btn"
-                      onClick={() => setShowAllRowsForYear(year)}
-                    >
-                      Näytä vuoden {year} laskelma...
-                    </button>
-                  </div>
-                ) : (
-                  <>
-                    <button
-                      type="button"
-                      className="btn"
-                      onClick={() => print()}
-                    >
-                      Tulosta liitteeksi...
-                    </button>
-                    <div className="onlyprint">
-                      <h2>Voitolliset</h2>
-                      {ledger
-                        .filter(
-                          (item) =>
-                            getYear(item.timestamp) === year &&
-                            item.taxableGain >= 0
-                        )
-                        .reverse()
-                        .map((item) => (
-                          <EntryRow
-                            key={item.id}
-                            item={item}
-                            consumed={consumed[item.id] ?? []}
-                            onEdit={setShowEditRow}
-                          />
-                        ))}
-                      <h2>Tappiolliset</h2>
-                      {ledger
-                        .filter(
-                          (item) =>
-                            getYear(item.timestamp) === year &&
-                            item.taxableGain < 0
-                        )
-                        .reverse()
-                        .map((item) => (
-                          <EntryRow
-                            key={item.id}
-                            item={item}
-                            consumed={consumed[item.id] ?? []}
-                            onEdit={setShowEditRow}
-                          />
-                        ))}
-                    </div>
-                  </>
-                )}
+                <div className={`${s.box} noprint`}>
+                  <button
+                    type="button"
+                    className="btn"
+                    onClick={() => printYear(year, ledger, consumed)}
+                  >
+                    Tulosta vuoden {year} laskelma...
+                  </button>
+                </div>
               </Fragment>
             );
           })}
