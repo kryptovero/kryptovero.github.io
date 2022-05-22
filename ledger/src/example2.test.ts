@@ -22,7 +22,8 @@ const initialLedger: Ledger = [
 
 test("Example 2.1", (t) => {
   t.is(
-    calculateGains(utcDate("2019-12-31"), utcDate("2020-02-01"), initialLedger),
+    calculateGains(utcDate("2019-12-31"), utcDate("2020-02-01"), initialLedger)
+      .gains,
     500
   )
 })

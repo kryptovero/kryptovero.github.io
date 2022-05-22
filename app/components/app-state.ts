@@ -2,8 +2,9 @@ import { Ledger, LedgerItem, sortLedger } from "@fifo/ledger";
 import { readCsv } from "@fifo/csv-reader";
 import { useEffect } from "react";
 
+const DAY = 1000 * 60 * 60 * 24;
 export const toCacheKey = (symbol: string, timestamp: number) =>
-  [symbol, timestamp].join("-");
+  [symbol, Math.floor(timestamp / DAY)].join("-");
 type PrefilledEurValues = { [symbolDateKey: string]: number };
 type ImportAppStateItem = {
   type: "importCoinbaseCsv";
@@ -20,8 +21,15 @@ export type AppStateItem =
   | EditRowAppStateItem;
 export type AppState = { version: 0; items: AppStateItem[] };
 
-const uniqByIdFilter = ({ id }: LedgerItem, index: number, ledger: Ledger) =>
-  ledger.findIndex((item) => item.id === id) === index;
+const uniqById = (ledger: Ledger) => {
+  const seendIds = new Set<string>();
+  return ledger.filter((ledgerItem) => {
+    const id = ledgerItem.id;
+    if (seendIds.has(id)) return false;
+    seendIds.add(id);
+    return true;
+  });
+};
 
 const applyPrefilledValues = (
   ledger: Ledger,
@@ -51,10 +59,10 @@ export const applyLedgerItem = (ledger: Ledger, next: AppStateItem) => {
   switch (next.type) {
     case "importCoinbaseCsv":
       return sortLedger(
-        [
+        uniqById([
           ...applyPrefilledValues(readCsv(next.data), next.prefilledEurValues),
           ...ledger,
-        ].filter(uniqByIdFilter)
+        ])
       );
     case "deleteRow":
       return ledger.filter((item) => item.id !== next.rowId);

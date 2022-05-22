@@ -41,11 +41,13 @@ const initialLedger: Ledger = [
 
 test("'Ohje laskurin käyttämiseen' -tab example", (t) => {
   t.is(
-    calculateGains(utcDate("2015-12-31"), utcDate("2016-12-31"), initialLedger),
+    calculateGains(utcDate("2015-12-31"), utcDate("2016-12-31"), initialLedger)
+      .gains,
     500
   )
   t.is(
-    calculateGains(utcDate("2016-12-31"), utcDate("2017-12-31"), initialLedger),
+    calculateGains(utcDate("2016-12-31"), utcDate("2017-12-31"), initialLedger)
+      .gains,
     7700
   )
 })

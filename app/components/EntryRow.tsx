@@ -1,6 +1,6 @@
 import s from "../styles/EntryRow.module.scss";
 import { useState } from "react";
-import { ComputedLedgerItem } from "@fifo/ledger";
+import { ComputedLedgerItem, TaxComputedLedgerItem } from "@fifo/ledger";
 import { insertEvent, useAppDispatch } from "./store";
 
 export default function EntryRow({
@@ -9,10 +9,10 @@ export default function EntryRow({
   onEdit,
 }: {
   item: ComputedLedgerItem;
-  consumed: ComputedLedgerItem[];
+  consumed: TaxComputedLedgerItem[];
   onEdit?: (id: string) => void;
 }) {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(true);
   const dispatch = useAppDispatch();
 
   return (
@@ -32,7 +32,7 @@ export default function EntryRow({
             <th>Mihin</th>
             <th>Välityspalkkio</th>
             <th>Verotettava tulo</th>
-            <th>Veron määrä</th>
+            <th className="noprint">Veron määrä</th>
           </tr>
         </thead>
         <tbody>
@@ -122,7 +122,7 @@ function ItemRow({
         })}{" "}
         EUR
       </td>
-      <td>
+      <td className="noprint">
         {(item.taxableGain * 0.3).toLocaleString("fi", {
           maximumFractionDigits: 2,
         })}{" "}

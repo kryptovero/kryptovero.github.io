@@ -22,7 +22,8 @@ const initialLedger: Ledger = [
 
 test("Example 4.1", (t) => {
   t.is(
-    calculateGains(utcDate("2019-12-31"), utcDate("2020-02-01"), initialLedger),
+    calculateGains(utcDate("2019-12-31"), utcDate("2020-02-01"), initialLedger)
+      .gains,
     -1_000
   )
 })
@@ -38,7 +39,10 @@ const ledger2: Ledger = [
 ]
 
 test("Example 4.2", (t) => {
-  t.is(calculateGains(utcDate("2020-02-01"), utcDate("2020-03-01"), ledger2), 0)
+  t.is(
+    calculateGains(utcDate("2020-02-01"), utcDate("2020-03-01"), ledger2).gains,
+    0
+  )
 })
 
 const ledger3: Ledger = [
@@ -53,7 +57,7 @@ const ledger3: Ledger = [
 
 test("Example 4.3", (t) => {
   t.is(
-    calculateGains(utcDate("2020-03-01"), utcDate("2020-04-01"), ledger3),
+    calculateGains(utcDate("2020-03-01"), utcDate("2020-04-01"), ledger3).gains,
     3_000
   )
 })

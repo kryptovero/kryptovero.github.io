@@ -16,7 +16,7 @@ test("returns ledger item with no gains on single ledger item", (t) => {
   }
   eq(t, toComputedLedger([item]), {
     consumed: { "123": [] },
-    ledger: [{ ...item, taxableGain: 0 }],
+    ledger: [{ ...item, taxableGain: 0, buyPrice: 0, sellPrice: 0, fees: 0 }],
     left: {
       A: [
         {
@@ -46,8 +46,8 @@ test("calculates gains from one full back-forth purchase", (t) => {
   eq(t, toComputedLedger([from, to]), {
     consumed: { "123": [], "124": [{ ...from, taxableGain: 1 }] },
     ledger: [
-      { ...from, taxableGain: 0 },
-      { ...to, taxableGain: 1 },
+      { ...from, taxableGain: 0, buyPrice: 0, sellPrice: 0, fees: 0 },
+      { ...to, taxableGain: 1, buyPrice: 0, sellPrice: 0, fees: 0 },
     ],
     left: {
       A: [],
@@ -81,8 +81,8 @@ test("calculates gains from half back-forth purchase", (t) => {
       ],
     },
     ledger: [
-      { ...from, taxableGain: 0 },
-      { ...to, taxableGain: 0.5 },
+      { ...from, taxableGain: 0, buyPrice: 0, sellPrice: 0, fees: 0 },
+      { ...to, taxableGain: 0.5, buyPrice: 0, sellPrice: 0, fees: 0 },
     ],
     left: {
       A: [
@@ -115,8 +115,8 @@ test("Reduces all selling fees from gains when selling full amount", (t) => {
   eq(t, toComputedLedger([from, to]), {
     consumed: { "123": [], "124": [{ ...from, taxableGain: 0.9 }] },
     ledger: [
-      { ...from, taxableGain: 0 },
-      { ...to, taxableGain: 0.9 },
+      { ...from, taxableGain: 0, buyPrice: 0, sellPrice: 0, fees: 0 },
+      { ...to, taxableGain: 0.9, buyPrice: 0, sellPrice: 0, fees: 0 },
     ],
     left: {
       A: [],
@@ -143,8 +143,8 @@ test("Reduces all selling fees + all purchase fees from gains when selling full 
   eq(t, toComputedLedger([from, to]), {
     consumed: { "123": [], "124": [{ ...from, taxableGain: 0.8 }] },
     ledger: [
-      { ...from, taxableGain: 0 },
-      { ...to, taxableGain: 0.8 },
+      { ...from, taxableGain: 0, buyPrice: 0, sellPrice: 0, fees: 0 },
+      { ...to, taxableGain: 0.8, buyPrice: 0, sellPrice: 0, fees: 0 },
     ],
     left: {
       A: [],
@@ -183,8 +183,8 @@ test("Reduces all selling fees + partial of purchase fees from gains when sellin
       ],
     },
     ledger: [
-      { ...from, taxableGain: 0 },
-      { ...to, taxableGain: 0.5 - fees },
+      { ...from, taxableGain: 0, buyPrice: 0, sellPrice: 0, fees: 0 },
+      { ...to, taxableGain: 0.5 - fees, buyPrice: 0, sellPrice: 0, fees: 0 },
     ],
     left: {
       A: [
@@ -269,9 +269,15 @@ test("Reduces all selling fees + partial of last purchase fee + all of first pur
       ],
     },
     ledger: [
-      { ...from1, taxableGain: 0 },
-      { ...from2, taxableGain: 0 },
-      { ...to, taxableGain: from1Gains + from2Gains },
+      { ...from1, taxableGain: 0, buyPrice: 0, sellPrice: 0, fees: 0 },
+      { ...from2, taxableGain: 0, buyPrice: 0, sellPrice: 0, fees: 0 },
+      {
+        ...to,
+        taxableGain: from1Gains + from2Gains,
+        buyPrice: 0,
+        sellPrice: 0,
+        fees: 0,
+      },
     ],
     left: {
       A: [
@@ -324,9 +330,9 @@ test("Does not reduce fees if unitPriceEur is not known", (t) => {
       "125": [{ ...from, taxableGain: 0.45 }],
     },
     ledger: [
-      { ...from, taxableGain: 0 },
-      { ...to1, taxableGain: 0.45 },
-      { ...to2, taxableGain: 0.45 },
+      { ...from, taxableGain: 0, buyPrice: 0, sellPrice: 0, fees: 0 },
+      { ...to1, taxableGain: 0.45, buyPrice: 0, sellPrice: 0, fees: 0 },
+      { ...to2, taxableGain: 0.45, buyPrice: 0, sellPrice: 0, fees: 0 },
     ],
     left: {
       A: [],

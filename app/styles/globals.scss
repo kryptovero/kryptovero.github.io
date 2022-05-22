@@ -13,6 +13,10 @@ body {
   font-smooth: always;
   font-size: 18px;
   color: #011317;
+
+  @media print {
+    font-size: 12px;
+  }
 }
 
 body {
@@ -83,4 +87,16 @@ select {
 label {
   font-size: 18px;
   color: #3f3d56;
+}
+
+.noprint {
+  @media print {
+    display: none !important;
+  }
+}
+
+.onlyprint {
+  @media screen {
+    display: none !important;
+  }
 }

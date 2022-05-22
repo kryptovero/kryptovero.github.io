@@ -17,6 +17,10 @@
   &.hidden {
     visibility: hidden;
   }
+
+  @media print {
+    display: none;
+  }
 }
 
 .tdHeading {
@@ -24,6 +28,10 @@
   padding-bottom: 5px;
   position: relative;
   left: -29px;
+
+  @media print {
+    position: static;
+  }
 }
 
 .editButton {
@@ -47,6 +55,12 @@
   padding: 14px 24px 21px;
   margin-bottom: 30px;
 
+  @media print {
+    padding: 0;
+    border-top: 1px solid #CCC;
+    margin-bottom: 10px;
+  }
+
   &:target {
     animation: highlight_entryrow 2s;
   }
@@ -58,7 +72,7 @@
   th {
     text-align: left;
     font-weight: normal;
-    font-size: 18px;
+    font-size: 1rem;
     color: #3f3d56;
     position: relative;
     bottom: -6px;
@@ -94,11 +108,11 @@
   }
 
   td {
-    font-size: 24px;
+    font-size: 1.5rem;
     color: #3f3d56;
 
     &:first-child {
-      font-size: 18px;
+      font-size: 1rem;
     }
 
     &:last-child {
