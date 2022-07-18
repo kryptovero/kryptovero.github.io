@@ -5,7 +5,7 @@
   "types": "build/index.d.ts",
   "license": "MIT",
   "dependencies": {
-    "@types/node": "^18.0.4",
+    "@types/node": "^18.0.6",
     "ava": "^4.3.1",
     "date-fns": "^2.28.0",
     "ts-node": "^10.9.1",
