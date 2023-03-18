@@ -1,11 +1,11 @@
 import { Ledger, LedgerItem } from "@fifo/ledger"
 
-export function readCsv(input: string): Ledger {
+export function readCsv(input: string, type: "pro" | "standalone" = "pro"): Ledger {
   return input
     .split("\n")
     .slice(1)
     .filter((row) => row.trim())
-    .map((row) => parseRow(row.split(",")))
+    .map((row) => type === "pro" ? parseProRow(row.split(",")) : parseStandaloneRow(row.split(",")))
     .map((row): LedgerItem => {
       const pair = row.product.split("-")
       const fromSymbol = row.side === "BUY" ? pair[1] : pair[0]
@@ -34,7 +34,52 @@ export function readCsv(input: string): Ledger {
     })
 }
 
-function parseRow(strRow: string[]) {
+const parseNotes = (notes: string) => {
+  const buyRegex = /^Bought ([0-9]*[.]?[0-9]+) (.+) for ($|€)([0-9]*[.]?[0-9]+) ([a-zA-Z]+)$/
+  const sellRegex = /^Sold ([0-9]*[.]?[0-9]+) (.+) for ($|€)([0-9]*[.]?[0-9]+) ([a-zA-Z]+)$/
+
+  const convertRegex = /^Converted ([0-9]*[.]?[0-9]+) (.+) to ([0-9]*[.]?[0-9]+) ([a-zA-Z]+)$/
+
+  if(buyRegex.test(notes)) {
+    const res = buyRegex.exec(notes)
+    if(!res) {
+      throw new Error("Failed to parse")
+    }
+    const [_first, _toCurrencyAmount, toCurrency, _fromCurrencySymbol, _fromCurrencyAmount, fromCurrency, ...rest] = res
+    return {
+      product: `${toCurrency}-${fromCurrency}`,
+      side: "BUY"
+    } as const
+  }
+
+  if(sellRegex.test(notes)) {
+    const res = sellRegex.exec(notes)
+    if(!res) {
+      throw new Error("Failed to parse")
+    }
+    const [_first, _fromCurrencyAmount, fromCurrency, _toCurrencySymbol, _toCurrencyAmount, toCurrency, ...rest] = res
+    return {
+      product: `${fromCurrency}-${toCurrency}`,
+      side: "SELL"
+    } as const
+  }
+
+  if(convertRegex.test(notes)) {
+    const res = convertRegex.exec(notes)
+    if(!res) {
+      throw new Error("Failed to parse")
+    }
+    const [_first, _fromCurrencyAmount, fromCurrency, _toCurrencyAmount, toCurrency, ...rest] = res
+    return {
+      product: `${fromCurrency}-${toCurrency}`,
+      side: "SELL"
+    } as const
+  }
+
+  throw new Error("Unknown error")
+}
+
+function parseProRow(strRow: string[]) {
   const [
     portfolio,
     tradeId,
@@ -60,5 +105,25 @@ function parseRow(strRow: string[]) {
     fee: parseFloat(fee),
     total: parseFloat(total),
     priceFeeTotalUnit,
+  } as const
+}
+
+function parseStandaloneRow(strRow: string[]) {
+  const [
+    timestamp, _transactionType, asset, quantityTransacted, eurSpotPrice, eurSubtotal, eurTotal, eurFees, notes
+  ] = strRow
+  const { side, product } = parseNotes(notes)
+  return {
+    portfolio: "default",
+    tradeId: `${side}_${product}_${timestamp}`,
+    product,
+    side: side as "BUY" | "SELL",
+    createdAt: Temporal.PlainDate.from(timestamp.slice(0, 10)),
+    size: parseFloat(quantityTransacted),
+    sizeUnit: asset,
+    price: parseFloat(eurSpotPrice),
+    fee: parseFloat(eurFees),
+    total: side === "BUY" ? -parseFloat(eurTotal) : parseFloat(eurTotal),
+    priceFeeTotalUnit: "EUR",
   } as const
 }
