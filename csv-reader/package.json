@@ -5,7 +5,7 @@
   "types": "build/index.d.ts",
   "license": "MIT",
   "dependencies": {
-    "@types/node": "^18.15.3",
+    "@types/node": "^18.15.5",
     "ava": "^5.2.0",
     "ts-node": "^10.9.1",
     "typescript": "^5.0.2",
