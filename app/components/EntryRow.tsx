@@ -48,7 +48,8 @@ export default function EntryRow({
             </tr>
 
             {consumed.map((item) => (
-              <ItemRow item={item} key={item.id} linkTo />
+              <></>
+              //<ItemRow item={item} key={item.id} linkTo />
             ))}
           </tbody>
         )}

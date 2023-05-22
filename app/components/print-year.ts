@@ -2,13 +2,13 @@ import { ComputedLedger, ComputedLedgerItem } from "@fifo/ledger";
 import { TaxComputedLedgerItem } from "@fifo/ledger/build/to-computed-ledger";
 import getYear from "date-fns/getYear";
 
-export async function printYear(
+export async function printYearTappiolliset(
   year: number,
   ledger: ComputedLedgerItem[],
   consumed: ComputedLedger["consumed"]
 ) {
   const handle = await showSaveFilePicker({
-    suggestedName: "report.txt",
+    suggestedName: `tappiolliset-${year}.txt`,
     types: [
       { description: "HTML file", accept: { "text/html": [".txt", ".txt"] } },
     ],
@@ -19,17 +19,7 @@ export async function printYear(
   await writer.write(`Ohje:
 Taulukossa on yhdessä solussa yksi ostotapahtuma.
 Mikäli ostotapahtumaan liittyy aiempia ostotapahtumia, on aiemmat tapahtumat merkitty samaan soluun └─ etuliitteellä.
-Voitolliset ja tappiolliset tapahtumat on eroteltu omiin tauluihinsa.\n\n\n`);
-  await writer.write(`# Voitolliset:\n\n`);
-  await writer.write(
-    table(
-      ledger.filter(
-        (item) => getYear(item.timestamp) === year && item.taxableGain >= 0
-      ),
-      consumed
-    )
-  );
-  await writer.write("\n\n");
+Voitolliset ja tappiolliset tapahtumat on eroteltu omiin tiedostoihinsa.\n\n\n`);
   await writer.write("# Tappiolliset:\n\n");
   await writer.write(
     table(
@@ -40,6 +30,38 @@ Voitolliset ja tappiolliset tapahtumat on eroteltu omiin tauluihinsa.\n\n\n`);
     )
   );
 
+  await writer.close();
+}
+
+export async function printYearVoitolliset(
+  year: number,
+  ledger: ComputedLedgerItem[],
+  consumed: ComputedLedger["consumed"]
+) {
+  const handle = await showSaveFilePicker({
+    suggestedName: `voitolliset-${year}.txt`,
+
+    types: [
+      { description: "HTML file", accept: { "text/html": [".txt", ".txt"] } },
+    ],
+  });
+  const filestream = await handle.createWritable();
+  const writer = await filestream.getWriter();
+
+  await writer.write(`Ohje:
+Taulukossa on yhdessä solussa yksi ostotapahtuma.
+Mikäli ostotapahtumaan liittyy aiempia ostotapahtumia, on aiemmat tapahtumat merkitty samaan soluun └─ etuliitteellä.
+Voitolliset ja tappiolliset tapahtumat on eroteltu omiin tiedostoihinsa.\n\n\n`);
+  await writer.write(`# Voitolliset:\n\n`);
+  await writer.write(
+    table(
+      ledger.filter(
+        (item) => getYear(item.timestamp) === year && item.taxableGain >= 0
+      ),
+      consumed
+    )
+  );
+  await writer.write("\n\n");
   await writer.close();
 }
 

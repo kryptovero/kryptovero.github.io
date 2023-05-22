@@ -4,6 +4,7 @@ export {
   toComputedLedger,
   ComputedLedger,
   ComputedLedgerItem,
+  TaxComputedLedgerItem,
 } from "./to-computed-ledger"
 
 export type Coin = { unitPriceEur?: number; symbol: string; amount: number }

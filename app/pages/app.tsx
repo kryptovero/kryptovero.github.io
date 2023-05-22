@@ -16,7 +16,10 @@ import {
 } from "../components/store";
 import Loading from "../components/Loading";
 import getYear from "date-fns/getYear";
-import { printYear } from "../components/print-year";
+import {
+  printYearVoitolliset,
+  printYearTappiolliset,
+} from "../components/print-year";
 
 export default function App() {
   usePreventUserLeaving();
@@ -137,9 +140,18 @@ export default function App() {
                   <button
                     type="button"
                     className="btn"
-                    onClick={() => printYear(year, ledger, consumed)}
+                    onClick={() => printYearVoitolliset(year, ledger, consumed)}
                   >
-                    Tulosta vuoden {year} laskelma...
+                    Tulosta vuoden {year} voitolliset laskelma...
+                  </button>
+                  <button
+                    type="button"
+                    className="btn"
+                    onClick={() =>
+                      printYearTappiolliset(year, ledger, consumed)
+                    }
+                  >
+                    Tulosta vuoden {year} tappiolliset laskelma...
                   </button>
                 </div>
               </Fragment>

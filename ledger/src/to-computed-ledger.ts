@@ -124,14 +124,14 @@ const compute = (
 
   if (remaining > ZERO_WITH_WIGGLE_SPACE && ledgerItem.from.symbol !== "EUR") {
     const timeFormatted = new Date(ledgerItem.timestamp).toLocaleString("fi-FI")
-    throw new Error(
+    /*throw new Error(
       `Lisääthän transaktiot aikajärjestykessä vanhimmasta uusimpaan!\n\n` +
         `Yritit vähentää ${ledgerItem.from.amount} ${ledgerItem.from.symbol} aikaleimalla ${timeFormatted}, ` +
         `mutta tilillä ei laskujeni mukaan ole tarpeeksi valuuttaa, vaan siellä on ainoastaan ` +
         `${ledgerItem.from.amount - remaining} ${ledgerItem.from.symbol}. ` +
         `Tämä luultavasti johtuu siitä, että olet ostanut kyseistä valuuttaa aiemmin, mutta se puuttuu vielä järjestelmästä. ` +
         `Kryptovero.fi olettaa, että transaktiot syötetään aina siinä järjestyksessä kun ne ovat tapahtuneet, vanhimmasta uusimpaan.`
-    )
+    )*/
   }
 
   const toUnitPriceEur = calculateToUnitPrice(ledgerItem, purchaseSumEur)
