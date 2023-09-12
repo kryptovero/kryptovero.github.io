@@ -23,7 +23,7 @@
     "redux-saga": "^1.2.3",
     "sass": "^1.66.1",
     "typed-redux-saga": "^1.5.0",
-    "uuid": "^9.0.0"
+    "uuid": "^9.0.1"
   },
   "devDependencies": {
     "@types/node": "20.6.0",
