@@ -21,7 +21,7 @@
     "react-redux": "^8.1.2",
     "redux": "^4.2.1",
     "redux-saga": "^1.2.3",
-    "sass": "^1.66.1",
+    "sass": "^1.67.0",
     "typed-redux-saga": "^1.5.0",
     "uuid": "^9.0.1"
   },
