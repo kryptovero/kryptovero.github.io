@@ -378,10 +378,10 @@
   resolved "https://registry.yarnpkg.com/@types/uuid/-/uuid-9.0.4.tgz#e884a59338da907bda8d2ed03e01c5c49d036f1c"
   integrity sha512-zAuJWQflfx6dYJM62vna+Sn5aeSWhh3OB+wfUEACNcqUSc0AGc5JKl+ycL1vrH7frGTXhJchYjE1Hak8L819dA==
 
-"@types/wicg-file-system-access@^2020.9.7":
-  version "2020.9.7"
-  resolved "https://registry.yarnpkg.com/@types/wicg-file-system-access/-/wicg-file-system-access-2020.9.7.tgz#8cd797c9b81ed876cf41158b10a634623831fccf"
-  integrity sha512-fjEImGBMKeoFE2pgX17XkNPAmgZdVs3MZcEAN7uW6vj2UxJR47WxKvmcR8TBgKpozbc1Gqxb8KaT8/VUgWEmTQ==
+"@types/wicg-file-system-access@^2020.9.8":
+  version "2020.9.8"
+  resolved "https://registry.yarnpkg.com/@types/wicg-file-system-access/-/wicg-file-system-access-2020.9.8.tgz#a8b739854ccb74b8048ef607d3701e9d506830e7"
+  integrity sha512-ggMz8nOygG7d/stpH40WVaNvBwuyYLnrg5Mbyf6bmsj/8+gb6Ei4ZZ9/4PNpcPNTT8th9Q8sM8wYmWGjMWLX/A==
 
 "@typescript-eslint/parser@^5.4.2 || ^6.0.0":
   version "6.2.1"
