@@ -10,7 +10,7 @@
     "test": "exit 0"
   },
   "dependencies": {
-    "@reduxjs/toolkit": "^1.9.6",
+    "@reduxjs/toolkit": "^1.9.7",
     "@types/react-redux": "^7.1.27",
     "@types/uuid": "^9.0.4",
     "@types/wicg-file-system-access": "^2023.10.0",
