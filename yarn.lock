@@ -373,10 +373,10 @@
   resolved "https://registry.yarnpkg.com/@types/uuid/-/uuid-9.0.7.tgz#b14cebc75455eeeb160d5fe23c2fcc0c64f724d8"
   integrity sha512-WUtIVRUZ9i5dYXefDEAI7sh9/O7jGvHg7Df/5O/gtH3Yabe5odI3UWopVR1qbPXQtvOxWu3mM4XxlYeZtMWF4g==
 
-"@types/wicg-file-system-access@^2023.10.3":
-  version "2023.10.3"
-  resolved "https://registry.yarnpkg.com/@types/wicg-file-system-access/-/wicg-file-system-access-2023.10.3.tgz#42f753d235d9ab733c3fb7f5b6cfdad50af89c81"
-  integrity sha512-HAmuLF6Nfbkpf7DxWfOVStuj8D+n/hdv0xJoijKIaYg6DukcqIZPz6tf0YJYRqSYhW7TwK2GZOISwiKdCWSkqw==
+"@types/wicg-file-system-access@^2023.10.4":
+  version "2023.10.4"
+  resolved "https://registry.yarnpkg.com/@types/wicg-file-system-access/-/wicg-file-system-access-2023.10.4.tgz#54d0747db4b4eed3aa0c6bb246947e44385ef528"
+  integrity sha512-ewOj7hWhsUTS2+aY6zY+7BwlgqGBj5ZXxKuHt3TAWpIJH0bDW/6bO1N1SdUDAzV8r0Nc+/ZtpAEETYTwrehBMw==
 
 "@typescript-eslint/parser@^5.4.2 || ^6.0.0":
   version "6.2.1"
