@@ -4,6 +4,7 @@ export {
   toComputedLedger,
   ComputedLedger,
   ComputedLedgerItem,
+  TaxComputedLedgerItem,
 } from "./to-computed-ledger"
 
 export type Coin = { unitPriceEur?: number; symbol: string; amount: number }
@@ -61,7 +62,39 @@ export const calculateGains = (from: number, to: number, ledger: Ledger) => {
   const untilTo = computed.ledger.filter(
     ({ timestamp }) => timestamp > from && timestamp <= to
   )
-  return untilTo.reduce((sum, { taxableGain }) => sum + taxableGain, 0)
+  let winnings = untilTo.filter((item) => item.taxableGain >= 0)
+  let losses = untilTo.filter((item) => item.taxableGain < 0)
+
+  let gainsOfWinnings = winnings.reduce(
+    (sum, { taxableGain }) => sum + taxableGain,
+    0
+  )
+  let gainsOfLosses = losses.reduce(
+    (sum, { taxableGain }) => sum + taxableGain,
+    0
+  )
+  let buysOfWinnings = winnings.reduce((sum, { buyPrice }) => sum + buyPrice, 0)
+  let sellsOfWinnings = winnings.reduce(
+    (sum, { sellPrice }) => sum + sellPrice,
+    0
+  )
+  let feesOfWinnings = winnings.reduce((sum, { fees }) => sum + fees, 0)
+  let buysOfLosses = losses.reduce((sum, { buyPrice }) => sum + buyPrice, 0)
+  let sellsOfLosses = losses.reduce((sum, { sellPrice }) => sum + sellPrice, 0)
+  let feesOfLosses = losses.reduce((sum, { fees }) => sum + fees, 0)
+
+  let gains = untilTo.reduce((sum, { taxableGain }) => sum + taxableGain, 0)
+  return {
+    gains,
+    gainsOfWinnings,
+    gainsOfLosses,
+    buysOfWinnings,
+    sellsOfWinnings,
+    buysOfLosses,
+    sellsOfLosses,
+    feesOfWinnings,
+    feesOfLosses,
+  }
 }
 
 export const sortLedger = (ledger: Ledger) =>

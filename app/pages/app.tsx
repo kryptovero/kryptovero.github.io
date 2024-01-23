@@ -16,6 +16,10 @@ import {
 } from "../components/store";
 import Loading from "../components/Loading";
 import getYear from "date-fns/getYear";
+import {
+  printYearVoitolliset,
+  printYearTappiolliset,
+} from "../components/print-year";
 
 export default function App() {
   usePreventUserLeaving();
@@ -42,7 +46,7 @@ export default function App() {
       />
       <main className={s.app}>
         <div className={s.container}>
-          <div className={`${s.box} ${s.buttons}`}>
+          <div className={`${s.box} ${s.buttons} noprint`}>
             <button
               className="btn btn-wider"
               onClick={() => setShowEditRow(`kryptovero_${uuid()}`)}
@@ -57,37 +61,99 @@ export default function App() {
             {isPrefilling && <Loading />}
           </div>
           {uniqYears.map((year) => {
-            const gains = calculateGains(
+            const gainsInfo = calculateGains(
               Date.parse(`${year}-01-01`),
               Date.parse(`${year}-12-31`),
               ledger
             );
-            const taxes = gains * 0.3;
+            const taxes = gainsInfo.gains * 0.3;
             return (
               <Fragment key={year}>
-                <dl className={s.box}>
+                <dl className={`${s.box} noprint`}>
                   <dt>Verotettavan tulon määrä {year}</dt>
                   <dd>
-                    {gains.toLocaleString("fi", { maximumFractionDigits: 2 })} €
+                    {gainsInfo.gains.toLocaleString("fi", {
+                      maximumFractionDigits: 2,
+                    })}
+                     €
                   </dd>
                 </dl>
-                <dl className={s.box}>
+                <dl className={`${s.box} noprint`}>
                   <dt>Maksettavan veron määrä {year}</dt>
                   <dd>
                     {taxes.toLocaleString("fi", { maximumFractionDigits: 2 })} €
                   </dd>
                 </dl>
-                {ledger
-                  .filter((item) => getYear(item.timestamp) === year)
-                  .reverse()
-                  .map((item) => (
-                    <EntryRow
-                      key={item.id}
-                      item={item}
-                      consumed={consumed[item.id] ?? []}
-                      onEdit={setShowEditRow}
-                    />
-                  ))}
+                <div className={`${s.box} noprint`}>
+                  <h2>Voitolliset kaupat {year}:</h2>
+                  <dl>
+                    <dt>Myyntihinnat</dt>
+                    <dd>
+                      {gainsInfo.sellsOfWinnings.toLocaleString("fi", {
+                        maximumFractionDigits: 2,
+                      })}
+                       €
+                    </dd>
+                    <dt>Hankintahinnat</dt>
+                    <dd>
+                      {gainsInfo.buysOfWinnings.toLocaleString("fi", {
+                        maximumFractionDigits: 2,
+                      })}
+                       €
+                    </dd>
+                    <dt>Myyntikulut</dt>
+                    <dd>
+                      {gainsInfo.feesOfWinnings.toLocaleString("fi", {
+                        maximumFractionDigits: 2,
+                      })}
+                       €
+                    </dd>
+                  </dl>
+                </div>
+                <div className={`${s.box} noprint`}>
+                  <h2>Tappiolliset kaupat {year}:</h2>
+                  <dl>
+                    <dt>Myyntihinnat</dt>
+                    <dd>
+                      {gainsInfo.sellsOfLosses.toLocaleString("fi", {
+                        maximumFractionDigits: 2,
+                      })}
+                       €
+                    </dd>
+                    <dt>Hankintahinnat</dt>
+                    <dd>
+                      {gainsInfo.buysOfLosses.toLocaleString("fi", {
+                        maximumFractionDigits: 2,
+                      })}
+                       €
+                    </dd>
+                    <dt>Myyntikulut</dt>
+                    <dd>
+                      {gainsInfo.feesOfLosses.toLocaleString("fi", {
+                        maximumFractionDigits: 2,
+                      })}
+                       €
+                    </dd>
+                  </dl>
+                </div>
+                <div className={`${s.box} noprint`}>
+                  <button
+                    type="button"
+                    className="btn"
+                    onClick={() => printYearVoitolliset(year, ledger, consumed)}
+                  >
+                    Tulosta vuoden {year} voitolliset laskelma...
+                  </button>
+                  <button
+                    type="button"
+                    className="btn"
+                    onClick={() =>
+                      printYearTappiolliset(year, ledger, consumed)
+                    }
+                  >
+                    Tulosta vuoden {year} tappiolliset laskelma...
+                  </button>
+                </div>
               </Fragment>
             );
           })}

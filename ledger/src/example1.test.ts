@@ -29,7 +29,8 @@ const initialLedger: Ledger = [
 
 test("Example 1.1", (t) => {
   t.is(
-    calculateGains(utcDate("2016-12-31"), utcDate("2017-03-01"), initialLedger),
+    calculateGains(utcDate("2016-12-31"), utcDate("2017-03-01"), initialLedger)
+      .gains,
     125
   )
 })
@@ -45,7 +46,7 @@ const ledger2: Ledger = [
 ]
 test("Example 1.2", (t) => {
   t.is(
-    calculateGains(utcDate("2017-03-01"), utcDate("2017-04-01"), ledger2),
+    calculateGains(utcDate("2017-03-01"), utcDate("2017-04-01"), ledger2).gains,
     -50
   )
 })
@@ -62,7 +63,7 @@ const ledger3: Ledger = [
 
 test("Example 1.3", (t) => {
   t.is(
-    calculateGains(utcDate("2017-04-01"), utcDate("2017-05-01"), ledger3),
+    calculateGains(utcDate("2017-04-01"), utcDate("2017-05-01"), ledger3).gains,
     175
   )
   const result = toComputedLedger(ledger3)
@@ -111,7 +112,7 @@ const ledger4: Ledger = [
 ]
 test("Example 1.4", (t) => {
   t.is(
-    calculateGains(utcDate("2017-05-01"), utcDate("2017-08-01"), ledger4),
+    calculateGains(utcDate("2017-05-01"), utcDate("2017-08-01"), ledger4).gains,
     750 + 500
   )
 })
