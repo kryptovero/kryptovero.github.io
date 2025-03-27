@@ -45,7 +45,7 @@ struct State {
     currencies: HashMap<Currency, Vec<Amount>>,
 }
 
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug, Eq, PartialEq, Clone)]
 struct Amount {
     amount: Decimal,
     purchase_price: Decimal,

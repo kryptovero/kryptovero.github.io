@@ -32,6 +32,13 @@ macro_rules! change2 {
         tx!(($year, $month, $day), $from, $to, $from_amount, $from_price)
     };
 }
+#[macro_export]
+macro_rules! change_unknown {
+    (($year:expr, $month:expr, $day:expr), ($from:expr, $from_amount:expr), ($to:expr, $to_amount:expr)) => {
+        // TODO: This is not correct, the transaction model needs some changes to support this
+        tx!(($year, $month, $day), $from, $to, $from_amount, $to_amount)
+    };
+}
 
 #[macro_export]
 macro_rules! sell {
