@@ -1,11 +1,11 @@
-use std::{cell::RefCell, collections::HashMap, rc::Rc};
+use std::{cell::RefCell, collections::HashMap, rc::Rc, result};
 
 use chrono::{DateTime, Datelike, Utc};
 use rust_decimal::Decimal;
 use rust_decimal_macros::dec;
 mod date_macros;
-mod tests;
 mod tx_macros;
+mod vero_tests;
 
 fn main() {
     println!("Hello, world!");
@@ -37,6 +37,13 @@ enum Account {
 }
 
 impl Account {
+    fn crypto_timestamp<'a>(&'a self) -> &'a DateTime<Utc> {
+        let Account::Crypto(Lot { timestamp, .. }) = self else {
+            panic!("Expected crypto account");
+        };
+        timestamp
+    }
+
     fn currency(&self) -> &str {
         match self {
             Account::Fiat {
@@ -134,9 +141,6 @@ impl Ledger {
             })
             .sum::<Decimal>();
 
-        println!("journal: {:?}", self.journal);
-
-        println!("tax: {}", value);
         -value
     }
 
@@ -158,19 +162,16 @@ impl Ledger {
     fn accounts_with_balance_for(&self, currency: &Currency) -> Vec<(Rc<Account>, Decimal)> {
         let mut account_sums: HashMap<Rc<Account>, Decimal> = HashMap::new();
 
-        for transaction in self.journal.iter().flat_map(|j| j.entries.iter()) {
-            let Account::Crypto(Lot {
-                currency: lot_currency,
-                ..
-            }) = transaction.account.as_ref()
-            else {
-                continue;
-            };
+        let transcations = self
+            .journal
+            .iter()
+            .flat_map(|j| j.entries.iter())
+            .filter(|tx| match tx.account.as_ref() {
+                Account::Crypto(lot) => lot.currency == *currency,
+                Account::Fiat { .. } => false,
+            });
 
-            if lot_currency != currency {
-                continue;
-            }
-
+        for transaction in transcations {
             let amount = transaction.value();
 
             account_sums
@@ -179,7 +180,9 @@ impl Ledger {
                 .or_insert(amount);
         }
 
-        account_sums.into_iter().collect::<Vec<_>>()
+        let mut result = account_sums.into_iter().collect::<Vec<_>>();
+        result.sort_by_key(|(account, _)| *account.crypto_timestamp());
+        result
     }
 
     fn apply(&mut self, event: Event) -> &mut Self {
@@ -410,7 +413,7 @@ impl Transaction {
 }
 
 #[cfg(test)]
-mod tests2 {
+mod tests {
     use super::*;
     use chrono::TimeZone;
     use std::collections::HashMap;
