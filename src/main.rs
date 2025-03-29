@@ -240,6 +240,33 @@ impl Ledger {
             .collect()
     }
 
+    fn produce_journal_entries(
+        &mut self,
+        amount: Decimal,
+        currency: &Currency,
+        callback: impl Fn(Decimal, Rc<Account>, &Lot, &mut Self) -> JournalEntry,
+    ) {
+        let mut amount_left = amount;
+        let mut journal_entries = vec![];
+
+        for (account, sum) in self.accounts_with_balance_for(&currency) {
+            let Account::Crypto(lot) = account.as_ref() else {
+                panic!("Expected crypto account");
+            };
+
+            let amount_to_use = amount_left.min(sum);
+            amount_left -= amount_to_use;
+
+            journal_entries.push(callback(amount_to_use, account.clone(), lot, self));
+
+            if amount_left.is_zero() {
+                break;
+            }
+        }
+
+        self.journal.extend(journal_entries);
+    }
+
     fn apply(&mut self, event: Event) -> &mut Self {
         match event {
             Event::Acquisition {
@@ -268,43 +295,34 @@ impl Ledger {
                 unit_price_eur,
                 timestamp,
             } => {
-                let mut amount_left = amount;
-                let mut journal_entries = vec![];
+                let cash_account = self.cash_account();
+                let net_profit_account = self.net_profit_account();
 
-                for (account, sum) in self.accounts_with_balance_for(&currency) {
-                    if sum.is_zero() {
-                        continue;
-                    }
+                self.produce_journal_entries(
+                    amount,
+                    &currency,
+                    |amount_to_use, account, lot, _| {
+                        let cash_amount = amount_to_use * unit_price_eur;
+                        let earnings_amount = cash_amount - lot.unit_price_eur * amount_to_use;
 
-                    let Account::Crypto(lot) = account.as_ref() else {
-                        panic!("Expected crypto account");
-                    };
-
-                    let amount_to_use = amount_left.min(sum);
-                    amount_left -= amount_to_use;
-
-                    let cash_amount = amount_to_use * unit_price_eur;
-                    let earnings_amount = cash_amount - lot.unit_price_eur * amount_to_use;
-
-                    journal_entries.push(JournalEntry {
-                        timestamp,
-                        entries: vec![
-                            Transaction::new(Direction::Credit, amount_to_use, account),
-                            Transaction::new(Direction::Debit, cash_amount, self.cash_account()),
-                            Transaction::new(
-                                Direction::Credit,
-                                earnings_amount,
-                                self.net_profit_account(),
-                            ),
-                        ],
-                    });
-
-                    if amount_left.is_zero() {
-                        break;
-                    }
-                }
-
-                self.journal.extend(journal_entries);
+                        JournalEntry {
+                            timestamp,
+                            entries: vec![
+                                Transaction::new(Direction::Credit, amount_to_use, account),
+                                Transaction::new(
+                                    Direction::Debit,
+                                    cash_amount,
+                                    cash_account.clone(),
+                                ),
+                                Transaction::new(
+                                    Direction::Credit,
+                                    earnings_amount,
+                                    net_profit_account.clone(),
+                                ),
+                            ],
+                        }
+                    },
+                );
             }
             Event::TransferKnownFrom {
                 from,
@@ -316,46 +334,32 @@ impl Ledger {
             } => {
                 let unit_price_eur_to = unit_price_eur_from * amount_from / amount_to;
                 let to_account = self.add_crypto_account(to, unit_price_eur_to, timestamp);
+                let net_profit_account = self.net_profit_account();
 
-                let mut amount_left = amount_from;
-                let mut journal_entries = vec![];
+                self.produce_journal_entries(
+                    amount_from,
+                    &from,
+                    |amount_to_use, account, lot, _| {
+                        let percentage = amount_to_use / amount_from;
 
-                for (account, sum) in self.accounts_with_balance_for(&from) {
-                    if sum.is_zero() {
-                        continue;
-                    }
+                        let to_amount = amount_to * percentage;
+                        let cash_amount = to_amount * unit_price_eur_to;
+                        let earnings_amount = cash_amount - lot.unit_price_eur * amount_to_use;
 
-                    let Account::Crypto(lot) = account.as_ref() else {
-                        panic!("Expected crypto account");
-                    };
-
-                    let amount_to_use = amount_left.min(sum);
-                    amount_left -= amount_to_use;
-                    let percentage = amount_to_use / amount_from;
-
-                    let to_amount = amount_to * percentage;
-                    let cash_amount = to_amount * unit_price_eur_to;
-                    let earnings_amount = cash_amount - lot.unit_price_eur * amount_to_use;
-
-                    journal_entries.push(JournalEntry {
-                        timestamp,
-                        entries: vec![
-                            Transaction::new(Direction::Credit, amount_to_use, account),
-                            Transaction::new(Direction::Debit, to_amount, to_account.clone()),
-                            Transaction::new(
-                                Direction::Credit,
-                                earnings_amount,
-                                self.net_profit_account(),
-                            ),
-                        ],
-                    });
-
-                    if amount_left.is_zero() {
-                        break;
-                    }
-                }
-
-                self.journal.extend(journal_entries);
+                        JournalEntry {
+                            timestamp,
+                            entries: vec![
+                                Transaction::new(Direction::Credit, amount_to_use, account),
+                                Transaction::new(Direction::Debit, to_amount, to_account.clone()),
+                                Transaction::new(
+                                    Direction::Credit,
+                                    earnings_amount,
+                                    net_profit_account.clone(),
+                                ),
+                            ],
+                        }
+                    },
+                );
             }
 
             Event::TransferKnownTo {
@@ -367,46 +371,31 @@ impl Ledger {
                 timestamp,
             } => {
                 let to_account = self.add_crypto_account(to, unit_price_eur_to, timestamp);
+                let net_profit_account = self.net_profit_account();
+                self.produce_journal_entries(
+                    amount_from,
+                    &from,
+                    |amount_to_use, account, lot, _| {
+                        let percentage = amount_to_use / amount_from;
 
-                let mut amount_left = amount_from;
-                let mut journal_entries = vec![];
+                        let to_amount = (amount_to * percentage);
+                        let cash_amount = to_amount * unit_price_eur_to;
+                        let earnings_amount = cash_amount - lot.unit_price_eur * amount_to_use;
 
-                for (account, sum) in self.accounts_with_balance_for(&from) {
-                    if sum.is_zero() {
-                        continue;
-                    }
-
-                    let Account::Crypto(lot) = account.as_ref() else {
-                        panic!("Expected crypto account");
-                    };
-
-                    let amount_to_use = amount_left.min(sum);
-                    amount_left -= amount_to_use;
-                    let percentage = amount_to_use / amount_from;
-
-                    let to_amount = (amount_to * percentage);
-                    let cash_amount = to_amount * unit_price_eur_to;
-                    let earnings_amount = cash_amount - lot.unit_price_eur * amount_to_use;
-
-                    journal_entries.push(JournalEntry {
-                        timestamp,
-                        entries: vec![
-                            Transaction::new(Direction::Credit, amount_to_use, account),
-                            Transaction::new(Direction::Debit, to_amount, to_account.clone()),
-                            Transaction::new(
-                                Direction::Credit,
-                                earnings_amount,
-                                self.net_profit_account(),
-                            ),
-                        ],
-                    });
-
-                    if amount_left.is_zero() {
-                        break;
-                    }
-                }
-
-                self.journal.extend(journal_entries);
+                        JournalEntry {
+                            timestamp,
+                            entries: vec![
+                                Transaction::new(Direction::Credit, amount_to_use, account),
+                                Transaction::new(Direction::Debit, to_amount, to_account.clone()),
+                                Transaction::new(
+                                    Direction::Credit,
+                                    earnings_amount,
+                                    net_profit_account.clone(),
+                                ),
+                            ],
+                        }
+                    },
+                );
             }
 
             Event::TransferUnknown {
@@ -416,43 +405,28 @@ impl Ledger {
                 amount_to,
                 timestamp,
             } => {
-                let mut amount_left = amount_from;
-                let mut journal_entries = vec![];
+                self.produce_journal_entries(
+                    amount_from,
+                    &from,
+                    |amount_to_use, account, lot, ledger| {
+                        let percentage = amount_to_use / amount_from;
 
-                for (account, sum) in self.accounts_with_balance_for(&from) {
-                    if sum.is_zero() {
-                        continue;
-                    }
+                        let unit_price_eur_from = lot.unit_price_eur;
+                        let unit_price_eur_to = unit_price_eur_from * amount_from / amount_to;
 
-                    let Account::Crypto(lot) = account.as_ref() else {
-                        panic!("Expected crypto account");
-                    };
+                        let to_account =
+                            ledger.add_crypto_account(to.clone(), unit_price_eur_to, timestamp);
+                        let to_amount = amount_to * percentage;
 
-                    let amount_to_use = amount_left.min(sum);
-                    amount_left -= amount_to_use;
-                    let percentage = amount_to_use / amount_from;
-
-                    let unit_price_eur_from = lot.unit_price_eur;
-                    let unit_price_eur_to = unit_price_eur_from * amount_from / amount_to;
-
-                    let to_account =
-                        self.add_crypto_account(to.clone(), unit_price_eur_to, timestamp);
-                    let to_amount = amount_to * percentage;
-
-                    journal_entries.push(JournalEntry {
-                        timestamp,
-                        entries: vec![
-                            Transaction::new(Direction::Credit, amount_to_use, account),
-                            Transaction::new(Direction::Debit, to_amount, to_account.clone()),
-                        ],
-                    });
-
-                    if amount_left.is_zero() {
-                        break;
-                    }
-                }
-
-                self.journal.extend(journal_entries);
+                        JournalEntry {
+                            timestamp,
+                            entries: vec![
+                                Transaction::new(Direction::Credit, amount_to_use, account),
+                                Transaction::new(Direction::Debit, to_amount, to_account.clone()),
+                            ],
+                        }
+                    },
+                );
             }
         };
         self
