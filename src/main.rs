@@ -118,6 +118,13 @@ enum Event {
         unit_price_eur_to: Decimal,
         timestamp: DateTime<Utc>,
     },
+    TransferUnknown {
+        from: Currency,
+        to: Currency,
+        amount_from: Decimal,
+        amount_to: Decimal,
+        timestamp: DateTime<Utc>,
+    },
 }
 
 #[derive(Debug)]
@@ -391,6 +398,52 @@ impl Ledger {
                                 earnings_amount,
                                 self.net_profit_account(),
                             ),
+                        ],
+                    });
+
+                    if amount_left.is_zero() {
+                        break;
+                    }
+                }
+
+                self.journal.extend(journal_entries);
+            }
+
+            Event::TransferUnknown {
+                from,
+                to,
+                amount_from,
+                amount_to,
+                timestamp,
+            } => {
+                let mut amount_left = amount_from;
+                let mut journal_entries = vec![];
+
+                for (account, sum) in self.accounts_with_balance_for(&from) {
+                    if sum.is_zero() {
+                        continue;
+                    }
+
+                    let Account::Crypto(lot) = account.as_ref() else {
+                        panic!("Expected crypto account");
+                    };
+
+                    let amount_to_use = amount_left.min(sum);
+                    amount_left -= amount_to_use;
+                    let percentage = amount_to_use / amount_from;
+
+                    let unit_price_eur_from = lot.unit_price_eur;
+                    let unit_price_eur_to = unit_price_eur_from * amount_from / amount_to;
+
+                    let to_account =
+                        self.add_crypto_account(to.clone(), unit_price_eur_to, timestamp);
+                    let to_amount = amount_to * percentage;
+
+                    journal_entries.push(JournalEntry {
+                        timestamp,
+                        entries: vec![
+                            Transaction::new(Direction::Credit, amount_to_use, account),
+                            Transaction::new(Direction::Debit, to_amount, to_account.clone()),
                         ],
                     });
 

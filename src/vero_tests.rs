@@ -88,30 +88,61 @@ fn test_example_2_2_1() {
     assert_eq!(ledger.tax(2017), running_tax);
 }
 
-/*
 #[test]
 fn test_example_2_4_4() {
-    let mut calculator = TaxCalculator::new();
+    let eur = Currency::test("EUR".to_string());
+    let btc = Currency::test("BTC".to_string());
+    let b = Currency::test("B".to_string());
+    let c = Currency::test("C".to_string());
+    let mut ledger = Ledger::new(eur.clone());
+    let mut running_tax = dec!(0);
 
-    calculator.tx(buy!((2022, 1, 1), "BTC", 1, 5000));
-    calculator.tx(change2!((2022, 2, 1), ("BTC", 1, 4000), ("B", 10)));
-    assert_eq!(calculator.last_tax_change(), dec!(-1000));
+    ledger
+        .apply(Event::Acquisition {
+            currency: btc.clone(),
+            amount: dec!(1),
+            unit_price_eur: dec!(5000),
+            timestamp: date!(2022, 1, 1),
+        })
+        .apply(Event::TransferKnownFrom {
+            from: btc.clone(),
+            to: b.clone(),
+            amount_from: dec!(1),
+            amount_to: dec!(10),
+            unit_price_eur_from: dec!(4000),
+            timestamp: date!(2022, 2, 1),
+        });
 
-    let b = calculator.currency("B");
-    assert_eq!(b.len(), 1);
-    let b_amount = b.get(0).unwrap();
-    assert_eq!(b_amount.amount, dec!(10));
-    assert_eq!(b_amount.purchase_price, dec!(400));
-    calculator.tx(change_unknown!((2022, 3, 1), ("B", 10), ("C", 4)));
-    assert_eq!(calculator.last_tax_change(), dec!(0));
+    running_tax -= dec!(1000);
+    assert_eq!(ledger.tax(2022), running_tax);
 
-    let c = calculator.currency("C");
-    assert_eq!(c.len(), 1);
-    let c_amount = c.get(0).unwrap();
-    assert_eq!(c_amount.amount, dec!(4));
-    assert_eq!(c_amount.purchase_price, dec!(1000));
+    assert_eq!(
+        ledger.all_account_balances(),
+        HashMap::from([(b.clone(), vec![(date!(2022, 2, 1), dec!(10), dec!(400))])])
+    );
 
-    calculator.tx(change!((2022, 4, 1), ("C", 4), ("BTC", 1, 7000)));
-    assert_eq!(calculator.last_tax_change(), dec!(3000)); // 7 000 € - 4 x 1 000 €
+    ledger.apply(Event::TransferUnknown {
+        from: b.clone(),
+        to: c.clone(),
+        amount_from: dec!(10),
+        amount_to: dec!(4),
+        timestamp: date!(2022, 3, 1),
+    });
+
+    assert_eq!(ledger.tax(2022), running_tax);
+    assert_eq!(
+        ledger.all_account_balances(),
+        HashMap::from([(c.clone(), vec![(date!(2022, 3, 1), dec!(4), dec!(1000))])])
+    );
+
+    ledger.apply(Event::TransferKnownTo {
+        from: c.clone(),
+        to: btc.clone(),
+        amount_from: dec!(4),
+        amount_to: dec!(1),
+        unit_price_eur_to: dec!(7000),
+        timestamp: date!(2022, 4, 1),
+    });
+    running_tax += dec!(3000); // 7 000 € - 4 x 1 000 €
+    assert_eq!(ledger.tax(2022), running_tax);
 }
-*/
