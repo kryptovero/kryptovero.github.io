@@ -1,15 +1,27 @@
-use std::{collections::HashMap, rc::Rc};
+use std::{cell::RefCell, collections::HashMap, rc::Rc};
 
-use chrono::{DateTime, Utc};
+use chrono::{DateTime, Datelike, Utc};
 use rust_decimal::Decimal;
 use rust_decimal_macros::dec;
+mod date_macros;
+mod tests;
+mod tx_macros;
 
 fn main() {
     println!("Hello, world!");
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
-pub struct Currency(String);
+pub struct Currency {
+    code: String,
+    precision: u32,
+}
+
+impl Currency {
+    pub fn new(code: String, precision: u32) -> Self {
+        Self { code, precision }
+    }
+}
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 struct Lot {
@@ -28,13 +40,20 @@ impl Account {
     fn currency(&self) -> &str {
         match self {
             Account::Fiat {
-                currency: Currency(currency),
+                currency: Currency { code, .. },
                 ..
-            } => currency,
+            } => code,
             Account::Crypto(Lot {
-                currency: Currency(currency),
+                currency: Currency { code, .. },
                 ..
-            }) => currency,
+            }) => code,
+        }
+    }
+
+    fn precision(&self) -> u32 {
+        match self {
+            Account::Fiat { currency, .. } => currency.precision,
+            Account::Crypto(lot) => lot.currency.precision,
         }
     }
 }
@@ -52,12 +71,28 @@ enum Event {
         unit_price_eur: Decimal,
         timestamp: DateTime<Utc>,
     },
-    Transfer,
+    TransferKnownFrom {
+        from: Currency,
+        to: Currency,
+        amount_from: Decimal,
+        amount_to: Decimal,
+        unit_price_eur_from: Decimal,
+        timestamp: DateTime<Utc>,
+    },
+    TransferKnownTo {
+        from: Currency,
+        to: Currency,
+        amount_from: Decimal,
+        amount_to: Decimal,
+        unit_price_eur_to: Decimal,
+        timestamp: DateTime<Utc>,
+    },
 }
 
+#[derive(Debug)]
 struct Ledger {
     base_currency_account: Rc<Account>,
-    earnings_account: Rc<Account>,
+    net_profit: Rc<Account>,
     accounts: Vec<Rc<Account>>,
     journal: Vec<JournalEntry>,
 }
@@ -69,7 +104,7 @@ impl Ledger {
                 currency: base_currency.clone(),
                 id: "cash".to_string(),
             }),
-            earnings_account: Rc::new(Account::Fiat {
+            net_profit: Rc::new(Account::Fiat {
                 currency: base_currency,
                 id: "earnings".to_string(),
             }),
@@ -82,8 +117,69 @@ impl Ledger {
         self.base_currency_account.clone()
     }
 
-    fn earnings_account(&self) -> Rc<Account> {
-        self.earnings_account.clone()
+    fn net_profit_account(&self) -> Rc<Account> {
+        self.net_profit.clone()
+    }
+
+    fn tax(&self, year: i32) -> Decimal {
+        let value = self
+            .journal
+            .iter()
+            .filter(|j| j.timestamp.year() == year)
+            .flat_map(|j| {
+                j.entries
+                    .iter()
+                    .filter(|t| t.account == self.net_profit_account())
+                    .map(|t| t.value())
+            })
+            .sum::<Decimal>();
+
+        println!("journal: {:?}", self.journal);
+
+        println!("tax: {}", value);
+        -value
+    }
+
+    fn add_crypto_account(
+        &mut self,
+        currency: Currency,
+        unit_price_eur: Decimal,
+        timestamp: DateTime<Utc>,
+    ) -> Rc<Account> {
+        let account = Rc::new(Account::Crypto(Lot {
+            currency,
+            unit_price_eur: unit_price_eur.round_dp(self.base_currency_account.precision()),
+            timestamp,
+        }));
+        self.accounts.push(account.clone());
+        account
+    }
+
+    fn accounts_with_balance_for(&self, currency: &Currency) -> Vec<(Rc<Account>, Decimal)> {
+        let mut account_sums: HashMap<Rc<Account>, Decimal> = HashMap::new();
+
+        for transaction in self.journal.iter().flat_map(|j| j.entries.iter()) {
+            let Account::Crypto(Lot {
+                currency: lot_currency,
+                ..
+            }) = transaction.account.as_ref()
+            else {
+                continue;
+            };
+
+            if lot_currency != currency {
+                continue;
+            }
+
+            let amount = transaction.value();
+
+            account_sums
+                .entry(transaction.account.clone())
+                .and_modify(|sum| *sum += amount)
+                .or_insert(amount);
+        }
+
+        account_sums.into_iter().collect::<Vec<_>>()
     }
 
     fn apply(&mut self, event: Event) -> &mut Self {
@@ -94,26 +190,17 @@ impl Ledger {
                 amount,
                 timestamp,
             } => {
-                self.accounts.push(Rc::new(Account::Crypto(Lot {
-                    currency,
-                    unit_price_eur,
-                    timestamp,
-                })));
-                let currency_account = self.accounts.last().unwrap().clone();
+                let currency_account = self.add_crypto_account(currency, unit_price_eur, timestamp);
 
                 self.journal.push(JournalEntry {
                     timestamp,
                     entries: vec![
-                        Transaction {
-                            direction: Direction::Credit,
-                            amount: unit_price_eur * amount,
-                            account: self.cash_account(),
-                        },
-                        Transaction {
-                            direction: Direction::Debit,
-                            amount,
-                            account: currency_account,
-                        },
+                        Transaction::new(
+                            Direction::Credit,
+                            unit_price_eur * amount,
+                            self.cash_account(),
+                        ),
+                        Transaction::new(Direction::Debit, amount, currency_account),
                     ],
                 });
             }
@@ -123,33 +210,10 @@ impl Ledger {
                 unit_price_eur,
                 timestamp,
             } => {
-                let mut account_sums: HashMap<Rc<Account>, Decimal> = HashMap::new();
-
-                for transaction in self.journal.iter().flat_map(|j| j.entries.iter()) {
-                    let Account::Crypto(Lot {
-                        currency: lot_currency,
-                        ..
-                    }) = transaction.account.as_ref()
-                    else {
-                        continue;
-                    };
-
-                    if lot_currency != &currency {
-                        continue;
-                    }
-
-                    let amount = transaction.value();
-
-                    account_sums
-                        .entry(transaction.account.clone())
-                        .and_modify(|sum| *sum += amount)
-                        .or_insert(amount);
-                }
-
                 let mut amount_left = amount;
                 let mut journal_entries = vec![];
 
-                for (account, sum) in account_sums {
+                for (account, sum) in self.accounts_with_balance_for(&currency) {
                     if sum.is_zero() {
                         continue;
                     }
@@ -167,21 +231,13 @@ impl Ledger {
                     journal_entries.push(JournalEntry {
                         timestamp,
                         entries: vec![
-                            Transaction {
-                                direction: Direction::Credit,
-                                amount: amount_to_use,
-                                account,
-                            },
-                            Transaction {
-                                direction: Direction::Debit,
-                                amount: cash_amount,
-                                account: self.cash_account(),
-                            },
-                            Transaction {
-                                direction: Direction::Credit,
-                                amount: earnings_amount,
-                                account: self.earnings_account(),
-                            },
+                            Transaction::new(Direction::Credit, amount_to_use, account),
+                            Transaction::new(Direction::Debit, cash_amount, self.cash_account()),
+                            Transaction::new(
+                                Direction::Credit,
+                                earnings_amount,
+                                self.net_profit_account(),
+                            ),
                         ],
                     });
 
@@ -192,7 +248,108 @@ impl Ledger {
 
                 self.journal.extend(journal_entries);
             }
-            _ => unimplemented!(),
+            Event::TransferKnownFrom {
+                from,
+                to,
+                amount_from,
+                amount_to,
+                unit_price_eur_from,
+                timestamp,
+            } => {
+                let unit_price_eur_to = unit_price_eur_from * amount_from / amount_to;
+                let to_account = self.add_crypto_account(to, unit_price_eur_to, timestamp);
+
+                let mut amount_left = amount_from;
+                let mut journal_entries = vec![];
+
+                for (account, sum) in self.accounts_with_balance_for(&from) {
+                    if sum.is_zero() {
+                        continue;
+                    }
+
+                    let Account::Crypto(lot) = account.as_ref() else {
+                        panic!("Expected crypto account");
+                    };
+
+                    let amount_to_use = amount_left.min(sum);
+                    amount_left -= amount_to_use;
+                    let percentage = amount_to_use / amount_from;
+
+                    let to_amount = amount_to * percentage;
+                    let cash_amount = to_amount * unit_price_eur_to;
+                    let earnings_amount = cash_amount - lot.unit_price_eur * amount_to_use;
+
+                    journal_entries.push(JournalEntry {
+                        timestamp,
+                        entries: vec![
+                            Transaction::new(Direction::Credit, amount_to_use, account),
+                            Transaction::new(Direction::Debit, to_amount, to_account.clone()),
+                            Transaction::new(
+                                Direction::Credit,
+                                earnings_amount,
+                                self.net_profit_account(),
+                            ),
+                        ],
+                    });
+
+                    if amount_left.is_zero() {
+                        break;
+                    }
+                }
+
+                self.journal.extend(journal_entries);
+            }
+
+            Event::TransferKnownTo {
+                from,
+                to,
+                amount_from,
+                amount_to,
+                unit_price_eur_to,
+                timestamp,
+            } => {
+                let to_account = self.add_crypto_account(to, unit_price_eur_to, timestamp);
+
+                let mut amount_left = amount_from;
+                let mut journal_entries = vec![];
+
+                for (account, sum) in self.accounts_with_balance_for(&from) {
+                    if sum.is_zero() {
+                        continue;
+                    }
+
+                    let Account::Crypto(lot) = account.as_ref() else {
+                        panic!("Expected crypto account");
+                    };
+
+                    let amount_to_use = amount_left.min(sum);
+                    amount_left -= amount_to_use;
+                    let percentage = amount_to_use / amount_from;
+
+                    let to_amount = (amount_to * percentage);
+                    let cash_amount = to_amount * unit_price_eur_to;
+                    let earnings_amount = cash_amount - lot.unit_price_eur * amount_to_use;
+
+                    journal_entries.push(JournalEntry {
+                        timestamp,
+                        entries: vec![
+                            Transaction::new(Direction::Credit, amount_to_use, account),
+                            Transaction::new(Direction::Debit, to_amount, to_account.clone()),
+                            Transaction::new(
+                                Direction::Credit,
+                                earnings_amount,
+                                self.net_profit_account(),
+                            ),
+                        ],
+                    });
+
+                    if amount_left.is_zero() {
+                        break;
+                    }
+                }
+
+                self.journal.extend(journal_entries);
+            }
         };
         self
     }
@@ -209,16 +366,19 @@ impl Ledger {
     }
 }
 
+#[derive(Debug)]
 struct JournalEntry {
     timestamp: DateTime<Utc>,
     entries: Vec<Transaction>,
 }
 
+#[derive(Debug)]
 enum Direction {
     Debit,
     Credit,
 }
 
+#[derive(Debug)]
 struct Transaction {
     direction: Direction,
     amount: Decimal,
@@ -226,6 +386,14 @@ struct Transaction {
 }
 
 impl Transaction {
+    fn new(direction: Direction, amount: Decimal, account: Rc<Account>) -> Self {
+        Self {
+            direction,
+            amount: amount.round_dp(account.precision()),
+            account,
+        }
+    }
+
     fn value(&self) -> Decimal {
         match self.direction {
             Direction::Debit => self.amount,
@@ -242,7 +410,7 @@ impl Transaction {
 }
 
 #[cfg(test)]
-mod tests {
+mod tests2 {
     use super::*;
     use chrono::TimeZone;
     use std::collections::HashMap;
@@ -251,6 +419,7 @@ mod tests {
         fn assert_balance_is_consistent(self: &Self);
         fn assert_balance(self: &Self, currency: &str, amount: Decimal);
         fn assert_base_currency_balance(self: &Self, amount: Decimal);
+        fn assert_net_profit(self: &Self, amount: Decimal);
     }
 
     impl Ledger {
@@ -290,12 +459,23 @@ mod tests {
             let sum = self.calculate_balance(|t| t.account == self.base_currency_account);
             assert_eq!(amount, sum);
         }
+
+        fn assert_net_profit(&self, amount: Decimal) {
+            let sum = self.calculate_balance(|t| t.account == self.net_profit);
+            assert_eq!(-amount, sum);
+        }
+    }
+
+    impl Currency {
+        pub fn test(code: String) -> Self {
+            Self { code, precision: 2 }
+        }
     }
 
     #[test]
     fn test_acquisition_produces_correct_balance() {
-        let eur = Currency("EUR".to_string());
-        let btc = Currency("BTC".to_string());
+        let eur = Currency::test("EUR".to_string());
+        let btc = Currency::test("BTC".to_string());
         let mut ledger = Ledger::new(eur.clone());
 
         let ledger = ledger.apply(Event::Acquisition {
@@ -307,12 +487,13 @@ mod tests {
         ledger.assert_balance_is_consistent();
         ledger.assert_base_currency_balance(dec!(-200));
         ledger.assert_balance("BTC", dec!(2));
+        ledger.assert_net_profit(dec!(0));
     }
 
     #[test]
     fn test_buy_and_sell_produces_correct_balance() {
-        let eur = Currency("EUR".to_string());
-        let btc = Currency("BTC".to_string());
+        let eur = Currency::test("EUR".to_string());
+        let btc = Currency::test("BTC".to_string());
         let mut ledger = Ledger::new(eur.clone());
 
         let ledger = ledger
@@ -332,5 +513,35 @@ mod tests {
         ledger.assert_balance_is_consistent();
         ledger.assert_base_currency_balance(dec!(-50));
         ledger.assert_balance("BTC", dec!(1));
+        ledger.assert_net_profit(dec!(50));
+    }
+
+    fn test_simple_transfer_produces_correct_balance() {
+        let eur = Currency::test("EUR".to_string());
+        let btc = Currency::test("BTC".to_string());
+        let eth = Currency::test("ETH".to_string());
+        let mut ledger = Ledger::new(eur.clone());
+
+        let ledger = ledger
+            .apply(Event::Acquisition {
+                currency: btc.clone(),
+                unit_price_eur: dec!(100),
+                amount: dec!(2),
+                timestamp: DateTime::from_timestamp(1716873600, 0).unwrap(),
+            })
+            .apply(Event::TransferKnownFrom {
+                from: btc,
+                to: eth,
+                amount_from: dec!(1),
+                amount_to: dec!(10),
+                unit_price_eur_from: dec!(75),
+                timestamp: DateTime::from_timestamp(1716883600, 0).unwrap(),
+            });
+
+        ledger.assert_balance_is_consistent();
+        ledger.assert_base_currency_balance(dec!(-200));
+        ledger.assert_balance("BTC", dec!(1));
+        ledger.assert_balance("ETH", dec!(10));
+        ledger.assert_net_profit(dec!(-25));
     }
 }
