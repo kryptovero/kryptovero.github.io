@@ -1,4 +1,10 @@
-use std::{cell::RefCell, collections::HashMap, rc::Rc, result};
+use std::{
+    cell::RefCell,
+    cmp::Ordering,
+    collections::{BTreeMap, HashMap},
+    rc::Rc,
+    result,
+};
 
 use chrono::{DateTime, Datelike, Utc};
 use rust_decimal::Decimal;
@@ -62,6 +68,18 @@ impl Account {
             Account::Fiat { currency, .. } => currency.precision,
             Account::Crypto(lot) => lot.currency.precision,
         }
+    }
+}
+
+impl PartialOrd for Account {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl Ord for Account {
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.crypto_timestamp().cmp(other.crypto_timestamp())
     }
 }
 
@@ -160,7 +178,8 @@ impl Ledger {
     }
 
     fn accounts_with_balance_for(&self, currency: &Currency) -> Vec<(Rc<Account>, Decimal)> {
-        let mut account_sums: HashMap<Rc<Account>, Decimal> = HashMap::new();
+        // Accounts are sorted by timestamp
+        let mut account_sums: BTreeMap<Rc<Account>, Decimal> = BTreeMap::new();
 
         let transcations = self
             .journal
@@ -180,9 +199,10 @@ impl Ledger {
                 .or_insert(amount);
         }
 
-        let mut result = account_sums.into_iter().collect::<Vec<_>>();
-        result.sort_by_key(|(account, _)| *account.crypto_timestamp());
-        result
+        account_sums
+            .into_iter()
+            .filter(|(_, sum)| !sum.is_zero())
+            .collect()
     }
 
     fn apply(&mut self, event: Event) -> &mut Self {
