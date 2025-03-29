@@ -1,14 +1,11 @@
 use std::{
-    cell::RefCell,
     cmp::Ordering,
     collections::{BTreeMap, HashMap},
     rc::Rc,
-    result,
 };
 
 use chrono::{DateTime, Datelike, Utc};
 use rust_decimal::Decimal;
-use rust_decimal_macros::dec;
 mod date_macros;
 
 #[cfg(test)]
@@ -95,12 +92,14 @@ enum Event {
         amount: Decimal,
         unit_price_eur: Decimal,
         timestamp: DateTime<Utc>,
+        fees_eur: Decimal,
     },
     Disposal {
         currency: Currency,
         amount: Decimal,
         unit_price_eur: Decimal,
         timestamp: DateTime<Utc>,
+        fees_eur: Decimal,
     },
     TransferKnownFrom {
         from: Currency,
@@ -109,6 +108,7 @@ enum Event {
         amount_to: Decimal,
         unit_price_eur_from: Decimal,
         timestamp: DateTime<Utc>,
+        fees_eur: Decimal,
     },
     TransferKnownTo {
         from: Currency,
@@ -117,6 +117,7 @@ enum Event {
         amount_to: Decimal,
         unit_price_eur_to: Decimal,
         timestamp: DateTime<Utc>,
+        fees_eur: Decimal,
     },
     TransferUnknown {
         from: Currency,
@@ -124,6 +125,7 @@ enum Event {
         amount_from: Decimal,
         amount_to: Decimal,
         timestamp: DateTime<Utc>,
+        fees_eur: Decimal,
     },
 }
 
@@ -160,6 +162,22 @@ impl Ledger {
     }
 
     fn tax(&self, year: i32) -> Decimal {
+        let value = self
+            .journal
+            .iter()
+            .filter(|j| j.timestamp.year() == year)
+            .flat_map(|j| {
+                j.entries
+                    .iter()
+                    .filter(|t| t.account == self.net_profit_account())
+                    .map(|t| t.value())
+            })
+            .sum::<Decimal>();
+
+        -value
+    }
+
+    fn profit(&self, year: i32) -> Decimal {
         let value = self
             .journal
             .iter()
@@ -274,6 +292,7 @@ impl Ledger {
                 unit_price_eur,
                 amount,
                 timestamp,
+                fees_eur,
             } => {
                 let currency_account = self.add_crypto_account(currency, unit_price_eur, timestamp);
 
@@ -288,12 +307,14 @@ impl Ledger {
                         Transaction::new(Direction::Debit, amount, currency_account),
                     ],
                 });
+                self.handle_fees(fees_eur, timestamp);
             }
             Event::Disposal {
                 currency,
                 amount,
                 unit_price_eur,
                 timestamp,
+                fees_eur,
             } => {
                 let cash_account = self.cash_account();
                 let net_profit_account = self.net_profit_account();
@@ -323,6 +344,7 @@ impl Ledger {
                         }
                     },
                 );
+                self.handle_fees(fees_eur, timestamp);
             }
             Event::TransferKnownFrom {
                 from,
@@ -331,6 +353,7 @@ impl Ledger {
                 amount_to,
                 unit_price_eur_from,
                 timestamp,
+                fees_eur,
             } => {
                 let unit_price_eur_to = unit_price_eur_from * amount_from / amount_to;
                 let to_account = self.add_crypto_account(to, unit_price_eur_to, timestamp);
@@ -360,6 +383,7 @@ impl Ledger {
                         }
                     },
                 );
+                self.handle_fees(fees_eur, timestamp);
             }
 
             Event::TransferKnownTo {
@@ -369,6 +393,7 @@ impl Ledger {
                 amount_to,
                 unit_price_eur_to,
                 timestamp,
+                fees_eur,
             } => {
                 let to_account = self.add_crypto_account(to, unit_price_eur_to, timestamp);
                 let net_profit_account = self.net_profit_account();
@@ -378,7 +403,7 @@ impl Ledger {
                     |amount_to_use, account, lot, _| {
                         let percentage = amount_to_use / amount_from;
 
-                        let to_amount = (amount_to * percentage);
+                        let to_amount = amount_to * percentage;
                         let cash_amount = to_amount * unit_price_eur_to;
                         let earnings_amount = cash_amount - lot.unit_price_eur * amount_to_use;
 
@@ -396,6 +421,7 @@ impl Ledger {
                         }
                     },
                 );
+                self.handle_fees(fees_eur, timestamp);
             }
 
             Event::TransferUnknown {
@@ -404,6 +430,7 @@ impl Ledger {
                 amount_from,
                 amount_to,
                 timestamp,
+                fees_eur,
             } => {
                 self.produce_journal_entries(
                     amount_from,
@@ -427,9 +454,24 @@ impl Ledger {
                         }
                     },
                 );
+                self.handle_fees(fees_eur, timestamp);
             }
         };
         self
+    }
+
+    fn handle_fees(&mut self, fees_eur: Decimal, timestamp: DateTime<Utc>) {
+        if fees_eur.is_zero() {
+            return;
+        }
+
+        self.journal.push(JournalEntry {
+            timestamp,
+            entries: vec![
+                Transaction::new(Direction::Debit, fees_eur, self.net_profit_account()),
+                Transaction::new(Direction::Credit, fees_eur, self.cash_account()),
+            ],
+        });
     }
 
     fn accounts_of_type(&self, currency: &Currency) -> Vec<Rc<Account>> {
@@ -490,8 +532,7 @@ impl Transaction {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use chrono::TimeZone;
-    use std::collections::HashMap;
+    use rust_decimal_macros::dec;
 
     trait LedgerTest {
         fn assert_balance_is_consistent(self: &Self);
@@ -545,15 +586,18 @@ mod tests {
     }
 
     impl Currency {
-        pub fn test(code: String) -> Self {
-            Self { code, precision: 2 }
+        pub fn test(code: &str) -> Self {
+            Self {
+                code: code.to_string(),
+                precision: 2,
+            }
         }
     }
 
     #[test]
     fn test_acquisition_produces_correct_balance() {
-        let eur = Currency::test("EUR".to_string());
-        let btc = Currency::test("BTC".to_string());
+        let eur = Currency::test("EUR");
+        let btc = Currency::test("BTC");
         let mut ledger = Ledger::new(eur.clone());
 
         let ledger = ledger.apply(Event::Acquisition {
@@ -561,6 +605,7 @@ mod tests {
             unit_price_eur: dec!(100),
             amount: dec!(2),
             timestamp: DateTime::from_timestamp(1716873600, 0).unwrap(),
+            fees_eur: dec!(0),
         });
         ledger.assert_balance_is_consistent();
         ledger.assert_base_currency_balance(dec!(-200));
@@ -570,8 +615,8 @@ mod tests {
 
     #[test]
     fn test_buy_and_sell_produces_correct_balance() {
-        let eur = Currency::test("EUR".to_string());
-        let btc = Currency::test("BTC".to_string());
+        let eur = Currency::test("EUR");
+        let btc = Currency::test("BTC");
         let mut ledger = Ledger::new(eur.clone());
 
         let ledger = ledger
@@ -580,12 +625,14 @@ mod tests {
                 unit_price_eur: dec!(100),
                 amount: dec!(2),
                 timestamp: DateTime::from_timestamp(1716873600, 0).unwrap(),
+                fees_eur: dec!(0),
             })
             .apply(Event::Disposal {
                 currency: btc,
                 amount: dec!(1),
                 unit_price_eur: dec!(150),
                 timestamp: DateTime::from_timestamp(1716883600, 0).unwrap(),
+                fees_eur: dec!(0),
             });
 
         ledger.assert_balance_is_consistent();
@@ -594,10 +641,11 @@ mod tests {
         ledger.assert_net_profit(dec!(50));
     }
 
+    #[test]
     fn test_simple_transfer_produces_correct_balance() {
-        let eur = Currency::test("EUR".to_string());
-        let btc = Currency::test("BTC".to_string());
-        let eth = Currency::test("ETH".to_string());
+        let eur = Currency::test("EUR");
+        let btc = Currency::test("BTC");
+        let eth = Currency::test("ETH");
         let mut ledger = Ledger::new(eur.clone());
 
         let ledger = ledger
@@ -606,6 +654,7 @@ mod tests {
                 unit_price_eur: dec!(100),
                 amount: dec!(2),
                 timestamp: DateTime::from_timestamp(1716873600, 0).unwrap(),
+                fees_eur: dec!(0),
             })
             .apply(Event::TransferKnownFrom {
                 from: btc,
@@ -614,6 +663,7 @@ mod tests {
                 amount_to: dec!(10),
                 unit_price_eur_from: dec!(75),
                 timestamp: DateTime::from_timestamp(1716883600, 0).unwrap(),
+                fees_eur: dec!(0),
             });
 
         ledger.assert_balance_is_consistent();

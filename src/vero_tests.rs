@@ -1,11 +1,14 @@
 use super::*;
+use rust_decimal_macros::dec;
 
 #[test]
 fn test_example_2_2_1() {
-    let eur = Currency::test("EUR".to_string());
-    let a = Currency::test("A".to_string());
-    let b = Currency::test("B".to_string());
-    let c = Currency::test("C".to_string());
+    // Sourced from:
+    // https://www.vero.fi/en/detailed-guidance/guidance/48411/taxation-of-virtual-currencies3/#:~:text=Example%201
+    let eur = Currency::test("EUR");
+    let a = Currency::test("A");
+    let b = Currency::test("B");
+    let c = Currency::test("C");
     let mut ledger = Ledger::new(eur.clone());
     let mut running_tax = dec!(0);
 
@@ -15,12 +18,14 @@ fn test_example_2_2_1() {
             amount: dec!(100),
             unit_price_eur: dec!(5),
             timestamp: date!(2017, 1, 1),
+            fees_eur: dec!(0),
         })
         .apply(Event::Acquisition {
             currency: a.clone(),
             amount: dec!(100),
             unit_price_eur: dec!(10),
             timestamp: date!(2017, 2, 1),
+            fees_eur: dec!(0),
         })
         .apply(Event::TransferKnownTo {
             from: a.clone(),
@@ -29,6 +34,7 @@ fn test_example_2_2_1() {
             amount_to: dec!(25),
             unit_price_eur_to: dec!(15),
             timestamp: date!(2017, 3, 1),
+            fees_eur: dec!(0),
         });
 
     running_tax += dec!(125); // 25 x 15 € - 50 x 5 €
@@ -41,6 +47,7 @@ fn test_example_2_2_1() {
         amount_to: dec!(30),
         unit_price_eur_from: dec!(10),
         timestamp: date!(2017, 4, 1),
+        fees_eur: dec!(0),
     });
     running_tax -= dec!(50); // 10 x 10 € - 10 x 15 €
     assert_eq!(ledger.tax(2017), running_tax);
@@ -60,6 +67,7 @@ fn test_example_2_2_1() {
         amount_to: dec!(20),
         unit_price_eur_to: dec!(20),
         timestamp: date!(2017, 5, 1),
+        fees_eur: dec!(0),
     });
 
     running_tax += dec!(175); // 20 x 20 € - 15 x 15 €
@@ -82,6 +90,7 @@ fn test_example_2_2_1() {
         amount: dec!(100),
         unit_price_eur: dec!(20),
         timestamp: date!(2017, 8, 1),
+        fees_eur: dec!(0),
     });
 
     running_tax += dec!(1250); // 750 + 500
@@ -89,11 +98,82 @@ fn test_example_2_2_1() {
 }
 
 #[test]
+fn test_example_2_3_2() {
+    // Sourced from:
+    // https://www.vero.fi/en/detailed-guidance/guidance/48411/taxation-of-virtual-currencies3/#:~:text=Example%202
+    let eur = Currency::test("EUR");
+    let a = Currency::test("A");
+    let mut ledger = Ledger::new(eur.clone());
+
+    ledger
+        .apply(Event::Acquisition {
+            currency: a.clone(),
+            amount: dec!(200),
+            unit_price_eur: dec!(5),
+            timestamp: date!(2020, 1, 1),
+            fees_eur: dec!(0),
+        })
+        .apply(Event::Disposal {
+            currency: a.clone(),
+            amount: dec!(100),
+            unit_price_eur: dec!(10),
+            timestamp: date!(2020, 2, 1),
+            fees_eur: dec!(0),
+        });
+
+    assert_eq!(ledger.tax(2020), dec!(500));
+}
+
+#[test]
+fn test_example_2_3_3() {
+    // Sourced from:
+    // https://www.vero.fi/en/detailed-guidance/guidance/48411/taxation-of-virtual-currencies3/#:~:text=Example%203
+    let eur = Currency::test("EUR");
+    let b = Currency::test("B");
+    let mut ledger = Ledger::new(eur.clone());
+
+    ledger
+        .apply(Event::Acquisition {
+            currency: b.clone(),
+            amount: dec!(10),
+            unit_price_eur: dec!(1000),
+            timestamp: date!(2020, 1, 1),
+            fees_eur: dec!(0),
+        })
+        .apply(Event::Disposal {
+            currency: b.clone(),
+            amount: dec!(1),
+            unit_price_eur: dec!(500),
+            timestamp: date!(2020, 2, 1),
+            fees_eur: dec!(0),
+        });
+
+    assert_eq!(ledger.tax(2020), dec!(-500));
+
+    assert_eq!(
+        ledger.all_account_balances(),
+        HashMap::from([(b.clone(), vec![(date!(2020, 1, 1), dec!(9), dec!(1000))])])
+    );
+
+    ledger.apply(Event::Disposal {
+        currency: b.clone(),
+        amount: dec!(9),
+        unit_price_eur: dec!(10_000),
+        timestamp: date!(2021, 3, 1),
+        fees_eur: dec!(1000),
+    });
+
+    assert_eq!(ledger.profit(2021), dec!(80_000));
+    // TODO: hankintameno-olettamaa / deemed acquisition cost of 20%
+    // assert_eq!(ledger.tax(2021), dec!(72_000)); // = 90 000 € - 18 000 €
+}
+
+#[test]
 fn test_example_2_4_4() {
-    let eur = Currency::test("EUR".to_string());
-    let btc = Currency::test("BTC".to_string());
-    let b = Currency::test("B".to_string());
-    let c = Currency::test("C".to_string());
+    let eur = Currency::test("EUR");
+    let btc = Currency::test("BTC");
+    let b = Currency::test("B");
+    let c = Currency::test("C");
     let mut ledger = Ledger::new(eur.clone());
     let mut running_tax = dec!(0);
 
@@ -103,6 +183,7 @@ fn test_example_2_4_4() {
             amount: dec!(1),
             unit_price_eur: dec!(5000),
             timestamp: date!(2022, 1, 1),
+            fees_eur: dec!(0),
         })
         .apply(Event::TransferKnownFrom {
             from: btc.clone(),
@@ -111,6 +192,7 @@ fn test_example_2_4_4() {
             amount_to: dec!(10),
             unit_price_eur_from: dec!(4000),
             timestamp: date!(2022, 2, 1),
+            fees_eur: dec!(0),
         });
 
     running_tax -= dec!(1000);
@@ -127,6 +209,7 @@ fn test_example_2_4_4() {
         amount_from: dec!(10),
         amount_to: dec!(4),
         timestamp: date!(2022, 3, 1),
+        fees_eur: dec!(0),
     });
 
     assert_eq!(ledger.tax(2022), running_tax);
@@ -142,6 +225,7 @@ fn test_example_2_4_4() {
         amount_to: dec!(1),
         unit_price_eur_to: dec!(7000),
         timestamp: date!(2022, 4, 1),
+        fees_eur: dec!(0),
     });
     running_tax += dec!(3000); // 7 000 € - 4 x 1 000 €
     assert_eq!(ledger.tax(2022), running_tax);
