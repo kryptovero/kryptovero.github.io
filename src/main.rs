@@ -11,6 +11,8 @@ use rust_decimal::Decimal;
 use rust_decimal_macros::dec;
 mod date_macros;
 mod tx_macros;
+
+#[cfg(test)]
 mod vero_tests;
 
 fn main() {
@@ -50,16 +52,21 @@ impl Account {
         timestamp
     }
 
-    fn currency(&self) -> &str {
+    fn crypto_unit_price_eur(&self) -> &Decimal {
+        let Account::Crypto(Lot { unit_price_eur, .. }) = self else {
+            panic!("Expected crypto account");
+        };
+        unit_price_eur
+    }
+
+    fn code(&self) -> &str {
+        self.currency().code.as_str()
+    }
+
+    fn currency(&self) -> &Currency {
         match self {
-            Account::Fiat {
-                currency: Currency { code, .. },
-                ..
-            } => code,
-            Account::Crypto(Lot {
-                currency: Currency { code, .. },
-                ..
-            }) => code,
+            Account::Fiat { currency, .. } => currency,
+            Account::Crypto(lot) => &lot.currency,
         }
     }
 
@@ -202,6 +209,28 @@ impl Ledger {
         account_sums
             .into_iter()
             .filter(|(_, sum)| !sum.is_zero())
+            .collect()
+    }
+
+    fn all_account_balances(&self) -> HashMap<Currency, Vec<(DateTime<Utc>, Decimal, Decimal)>> {
+        self.accounts
+            .iter()
+            .map(|account| {
+                (
+                    account.currency().clone(),
+                    self.accounts_with_balance_for(account.currency())
+                        .into_iter()
+                        .map(|(account, sum)| {
+                            (
+                                *account.crypto_timestamp(),
+                                sum,
+                                *account.crypto_unit_price_eur(),
+                            )
+                        })
+                        .collect::<Vec<_>>(),
+                )
+            })
+            .filter(|(_, balances)| !balances.is_empty())
             .collect()
     }
 
@@ -474,7 +503,7 @@ mod tests {
         }
 
         fn assert_balance(&self, currency: &str, amount: Decimal) {
-            let sum = self.calculate_balance(|t| t.account.currency() == currency);
+            let sum = self.calculate_balance(|t| t.account.code() == currency);
             assert_eq!(amount, sum);
         }
 

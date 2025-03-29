@@ -1,5 +1,4 @@
 use super::*;
-use rust_decimal_macros::dec;
 
 #[test]
 fn test_example_2_2_1() {
@@ -32,7 +31,7 @@ fn test_example_2_2_1() {
             timestamp: date!(2017, 3, 1),
         });
 
-    running_tax += dec!(125);  // 25 x 15 € - 50 x 5 €
+    running_tax += dec!(125); // 25 x 15 € - 50 x 5 €
     assert_eq!(ledger.tax(2017), running_tax);
 
     ledger.apply(Event::TransferKnownFrom {
@@ -63,31 +62,32 @@ fn test_example_2_2_1() {
         timestamp: date!(2017, 5, 1),
     });
 
-    assert_eq!(ledger.tax(2017), dec!(250)); // last sum + 20 x 20 € - 15 x 15 € = last sum + 175
-    /*
+    running_tax += dec!(175); // 20 x 20 € - 15 x 15 €
+    assert_eq!(ledger.tax(2017), running_tax);
 
-    assert_eq!(ledger.last_tax_change(), dec!(175)); // 20 x 20 € - 15 x 15 €
     assert_eq!(
-        ledger.state().currencies,
+        ledger.all_account_balances(),
         HashMap::from([
-            (Currency::from("A"), vec![
-                Amount::new(date!(2017, 1, 1), dec!(50), dec!(5)),
-                Amount::new(date!(2017, 2, 1), dec!(100), dec!(10)),
-                Amount::new(date!(2017, 5, 1), dec!(20), dec!(20)),
+            (a.clone(), vec![
+                (date!(2017, 1, 1), dec!(50), dec!(5)),
+                (date!(2017, 2, 1), dec!(100), dec!(10)),
+                (date!(2017, 5, 1), dec!(20), dec!(20)),
             ]),
-            (Currency::from("C"), vec![
-                Amount::new(date!(2017, 4, 1), dec!(30), dec!(3.33)),
-                //
-            ])
+            (c.clone(), vec![(date!(2017, 4, 1), dec!(30), dec!(3.33)),]),
         ])
     );
 
-    ledger.apply(sell!((2017, 8, 1), "A", 100, 20));
-    assert_eq!(
-        ledger.tax_rows.iter().last().unwrap().tax_change,
-        dec!(1250) // 750 + 500
-    );*/
+    ledger.apply(Event::Disposal {
+        currency: a.clone(),
+        amount: dec!(100),
+        unit_price_eur: dec!(20),
+        timestamp: date!(2017, 8, 1),
+    });
+
+    running_tax += dec!(1250); // 750 + 500
+    assert_eq!(ledger.tax(2017), running_tax);
 }
+
 /*
 #[test]
 fn test_example_2_4_4() {
