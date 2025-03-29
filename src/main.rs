@@ -604,7 +604,7 @@ mod tests {
             currency: btc,
             unit_price_eur: dec!(100),
             amount: dec!(2),
-            timestamp: DateTime::from_timestamp(1716873600, 0).unwrap(),
+            timestamp: date!(2020, 1, 1),
             fees_eur: dec!(0),
         });
         ledger.assert_balance_is_consistent();
@@ -624,14 +624,14 @@ mod tests {
                 currency: btc.clone(),
                 unit_price_eur: dec!(100),
                 amount: dec!(2),
-                timestamp: DateTime::from_timestamp(1716873600, 0).unwrap(),
+                timestamp: date!(2020, 1, 1),
                 fees_eur: dec!(0),
             })
             .apply(Event::Disposal {
                 currency: btc,
                 amount: dec!(1),
                 unit_price_eur: dec!(150),
-                timestamp: DateTime::from_timestamp(1716883600, 0).unwrap(),
+                timestamp: date!(2020, 2, 1),
                 fees_eur: dec!(0),
             });
 
@@ -639,6 +639,34 @@ mod tests {
         ledger.assert_base_currency_balance(dec!(-50));
         ledger.assert_balance("BTC", dec!(1));
         ledger.assert_net_profit(dec!(50));
+    }
+
+    #[test]
+    fn test_buy_and_sell_produces_correct_balance_with_fees() {
+        let eur = Currency::test("EUR");
+        let btc = Currency::test("BTC");
+        let mut ledger = Ledger::new(eur.clone());
+
+        let ledger = ledger
+            .apply(Event::Acquisition {
+                currency: btc.clone(),
+                unit_price_eur: dec!(100),
+                amount: dec!(2),
+                timestamp: date!(2020, 1, 1),
+                fees_eur: dec!(10),
+            })
+            .apply(Event::Disposal {
+                currency: btc,
+                amount: dec!(1),
+                unit_price_eur: dec!(150),
+                timestamp: date!(2020, 2, 1),
+                fees_eur: dec!(10),
+            });
+
+        ledger.assert_balance_is_consistent();
+        ledger.assert_base_currency_balance(dec!(-70));
+        ledger.assert_balance("BTC", dec!(1));
+        ledger.assert_net_profit(dec!(30));
     }
 
     #[test]
@@ -653,7 +681,7 @@ mod tests {
                 currency: btc.clone(),
                 unit_price_eur: dec!(100),
                 amount: dec!(2),
-                timestamp: DateTime::from_timestamp(1716873600, 0).unwrap(),
+                timestamp: date!(2020, 1, 1),
                 fees_eur: dec!(0),
             })
             .apply(Event::TransferKnownFrom {
@@ -662,7 +690,7 @@ mod tests {
                 amount_from: dec!(1),
                 amount_to: dec!(10),
                 unit_price_eur_from: dec!(75),
-                timestamp: DateTime::from_timestamp(1716883600, 0).unwrap(),
+                timestamp: date!(2020, 2, 1),
                 fees_eur: dec!(0),
             });
 
