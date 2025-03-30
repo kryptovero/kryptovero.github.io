@@ -6,59 +6,41 @@ export function readCsv(input: string): Ledger {
     .slice(1)
     .filter((row) => row.trim())
     .map((row) => parseRow(row.split(",")))
-    .map((row): LedgerItem => {
-      const pair = row.product.split("-")
-      const fromSymbol = row.side === "BUY" ? pair[1] : pair[0]
-      const toSymbol = row.side === "BUY" ? pair[0] : pair[1]
-      const fromAmount = row.side === "BUY" ? -row.total : row.size
-      const toAmount = row.side === "BUY" ? row.size : row.total
-      const fromUnitPriceEur = row.side === "BUY" ? 1 : row.price
-      const toUnitPriceEur = row.side === "BUY" ? row.price : 1
+    .filter((row) => row.type === "Buy" || row.type === "Sell")
+    .map((row, i): LedgerItem => {
+      const fromSymbol = row.type === "Buy" ? "EUR" : row.symbol
+      const toSymbol = row.type === "Buy" ? row.symbol : "EUR"
+      const fromAmount = row.type === "Buy" ? -row.value : row.quantity
+      const toAmount = row.type === "Buy" ? row.quantity : row.value
+      const fromUnitPriceEur = row.type === "Buy" ? 1 : row.price
+      const toUnitPriceEur = row.type === "Buy" ? row.price : 1
       return {
-        id: `coinbase_${row.tradeId}`,
-        timestamp: row.createdAt,
+        id: `revoolutx_${i}`,
+        timestamp: row.date.getTime(),
         from: {
           symbol: fromSymbol,
           amount: fromAmount,
-          unitPriceEur:
-            row.priceFeeTotalUnit === "EUR" ? fromUnitPriceEur : undefined,
+          unitPriceEur: fromUnitPriceEur,
         },
         to: {
           symbol: toSymbol,
           amount: toAmount,
-          unitPriceEur:
-            row.priceFeeTotalUnit === "EUR" ? toUnitPriceEur : undefined,
+          unitPriceEur: toUnitPriceEur,
         },
-        fee: { amount: row.fee, symbol: row.priceFeeTotalUnit },
+        fee: { amount: row.fees, symbol: "EUR" },
       }
     })
 }
 
 function parseRow(strRow: string[]) {
-  const [
-    portfolio,
-    tradeId,
-    product,
-    side,
-    createdAt,
-    size,
-    sizeUnit,
-    price,
-    fee,
-    total,
-    priceFeeTotalUnit,
-  ] = strRow
+  const [symbol, type, quantity, price, value, fees, date] = strRow
   return {
-    portfolio,
-    tradeId: parseInt(tradeId, 10),
-    product,
-    side: side as "BUY" | "SELL",
-    createdAt: Date.parse(createdAt),
-    size: parseFloat(size),
-    sizeUnit,
-    price: parseFloat(price),
-    fee: parseFloat(fee),
-    total: parseFloat(total),
-    priceFeeTotalUnit,
+    symbol,
+    type: type as "Buy" | "Sell" | "Send" | "Receive",
+    quantity: parseFloat(quantity),
+    price: parseFloat(price.slice(1)),
+    value: parseFloat(value.slice(1)),
+    fees: parseFloat(fees.slice(1)),
+    date: new Date(Date.parse(date)),
   } as const
 }
